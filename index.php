@@ -102,11 +102,12 @@ echo $OUTPUT->header();
     <div class="dashboard-grid">
         <!-- Tasks Today Widget -->
         <div class="dashboard-widget card">
-            <div class="card-header bg-primary text-white">
+            <!-- Changed bg-primary to bg-light for better readability -->
+            <div class="card-header bg-light">
                 <h5 class="mb-0">
                     <i class="fa fa-calendar-day"></i>
                     <?php echo get_string('widget_tasks_today', 'local_academic_dashboard'); ?>
-                    <span class="badge badge-light"><?php echo count($taskstoday); ?></span>
+                    <span class="badge badge-primary"><?php echo count($taskstoday); ?></span>
                 </h5>
             </div>
             <div class="card-body">
@@ -146,11 +147,12 @@ echo $OUTPUT->header();
 
         <!-- Overdue Tasks Widget -->
         <div class="dashboard-widget card">
-            <div class="card-header bg-danger text-white">
-                <h5 class="mb-0">
+            <!-- Changed bg-danger to border-danger for better readability -->
+            <div class="card-header bg-light border-danger">
+                <h5 class="mb-0 text-danger">
                     <i class="fa fa-exclamation-triangle"></i>
                     <?php echo get_string('widget_tasks_overdue', 'local_academic_dashboard'); ?>
-                    <span class="badge badge-light"><?php echo count($tasksoverdue); ?></span>
+                    <span class="badge badge-danger"><?php echo count($tasksoverdue); ?></span>
                 </h5>
             </div>
             <div class="card-body">
@@ -180,11 +182,12 @@ echo $OUTPUT->header();
         <!-- At-Risk Students Widget -->
         <?php if (has_capability('local/academic_dashboard:viewalerts', $context)): ?>
         <div class="dashboard-widget card">
-            <div class="card-header bg-warning">
-                <h5 class="mb-0">
+            <!-- Changed bg-warning to border-warning for better readability -->
+            <div class="card-header bg-light border-warning">
+                <h5 class="mb-0 text-warning">
                     <i class="fa fa-user-clock"></i>
                     <?php echo get_string('widget_atrisk_students', 'local_academic_dashboard'); ?>
-                    <span class="badge badge-light"><?php echo count($atriskstudents); ?></span>
+                    <span class="badge badge-warning"><?php echo count($atriskstudents); ?></span>
                 </h5>
             </div>
             <div class="card-body">
@@ -234,11 +237,12 @@ echo $OUTPUT->header();
         <!-- Open Service Requests Widget -->
         <?php if (has_capability('local/academic_dashboard:viewservicerequests', $context)): ?>
         <div class="dashboard-widget card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">
+            <!-- Changed bg-info text-white to border-info for better readability -->
+            <div class="card-header bg-light border-info">
+                <h5 class="mb-0 text-info">
                     <i class="fa fa-headset"></i>
                     <?php echo get_string('widget_open_requests', 'local_academic_dashboard'); ?>
-                    <span class="badge badge-light"><?php echo count($openrequests); ?></span>
+                    <span class="badge badge-info"><?php echo count($openrequests); ?></span>
                 </h5>
             </div>
             <div class="card-body">
@@ -277,7 +281,8 @@ echo $OUTPUT->header();
 
         <!-- Quick Access Widget -->
         <div class="dashboard-widget card">
-            <div class="card-header bg-secondary text-white">
+            <!-- Changed bg-secondary text-white to bg-light for better readability -->
+            <div class="card-header bg-light">
                 <h5 class="mb-0">
                     <i class="fa fa-bolt"></i>
                     <?php echo get_string('widget_quick_access', 'local_academic_dashboard'); ?>
