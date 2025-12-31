@@ -52,8 +52,8 @@ $sql = "SELECT c.*,
         FROM {local_acad_classes} c
         LEFT JOIN {local_acad_class_members} cm ON cm.classid = c.id
         LEFT JOIN {local_acad_tasks} t ON (
-            (t.entitytype = 'class' AND t.entityid = c.id AND t.status != 'completed')
-            OR (t.entitytype = 'student' AND t.entityid = cm.userid AND t.status != 'completed')
+            (t.assigntype = 'class' AND t.classid = c.id AND t.status != 'completed')
+            OR (t.assigntype = 'student' AND t.studentid = cm.userid AND t.status != 'completed')
         )
         LEFT JOIN {local_acad_service_requests} sr ON sr.studentid = cm.userid AND sr.status = 'open'
         WHERE 1=1";
