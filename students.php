@@ -51,6 +51,8 @@ $sql = "SELECT DISTINCT u.id, u.firstname, u.lastname, u.email, u.lastaccess,
                COUNT(DISTINCT t.id) as opentasks,
                COUNT(DISTINCT sr.id) as openrequests
         FROM {user} u
+        LEFT JOIN {local_acad_tasks} t ON t.entitytype = 'student' AND t.entityid = u.id AND t.status != 'completed'
+        LEFT JOIN {local_acad_service_requests} sr ON sr.studentid = u.id AND sr.status = 'open'
         WHERE u.deleted = 0 AND u.suspended = 0";
 
 $params = [];
@@ -73,9 +75,7 @@ if ($classid > 0) {
     $params['classid'] = $classid;
 }
 
-$sql .= " LEFT JOIN {local_acad_tasks} t ON t.entitytype = 'student' AND t.entityid = u.id AND t.status != 'completed'
-          LEFT JOIN {local_acad_service_requests} sr ON sr.studentid = u.id AND sr.status = 'open'
-          GROUP BY u.id, u.firstname, u.lastname, u.email, u.lastaccess
+$sql .= " GROUP BY u.id, u.firstname, u.lastname, u.email, u.lastaccess
           ORDER BY u.lastname ASC, u.firstname ASC";
 
 $students = $DB->get_records_sql($sql, $params, $page * $perpage, $perpage);
