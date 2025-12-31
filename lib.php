@@ -197,11 +197,12 @@ function local_academic_dashboard_get_student_completion($userid, $courseids = [
 
     $completiondata = [];
     
-    $sql = "SELECT DISTINCT c.id, c.fullname, c.shortname
+    $sql = "SELECT DISTINCT c.id, c.fullname, c.shortname, c.enablecompletion
             FROM {course} c
             JOIN {enrol} e ON e.courseid = c.id
             JOIN {user_enrolments} ue ON ue.enrolid = e.id
-            WHERE ue.userid = :userid";
+            WHERE ue.userid = :userid
+            AND c.id != 1";  // Exclude site course
     $params = ['userid' => $userid];
 
     if (!empty($courseids)) {
@@ -210,18 +211,29 @@ function local_academic_dashboard_get_student_completion($userid, $courseids = [
         $params = array_merge($params, $inparams);
     }
 
-    $courses = $DB->get_records_sql($sql, $params);
-
-    foreach ($courses as $course) {
-        $completion = new completion_info($course);
-        if ($completion->is_enabled()) {
-            $completiondata[$course->id] = [
-                'courseid' => $course->id,
-                'coursename' => $course->fullname,
-                'completed' => $completion->is_course_complete($userid),
-                'progress' => \core_completion\progress::get_course_progress_percentage($course, $userid),
-            ];
+    try {
+        $courses = $DB->get_records_sql($sql, $params);
+        
+        foreach ($courses as $course) {
+            // Check if completion is enabled before trying to get completion info
+            if (empty($course->enablecompletion)) {
+                continue;
+            }
+            
+            $completion = new completion_info($course);
+            if ($completion->is_enabled()) {
+                $percentage = \core_completion\progress::get_course_progress_percentage($course, $userid);
+                $completiondata[$course->id] = [
+                    'courseid' => $course->id,
+                    'coursename' => $course->fullname,
+                    'completed' => $completion->is_course_complete($userid),
+                    'progress' => $percentage,
+                ];
+            }
         }
+    } catch (Exception $e) {
+        // Log error but don't break the dashboard
+        debugging('Error getting student completion: ' . $e->getMessage(), DEBUG_DEVELOPER);
     }
 
     return $completiondata;
