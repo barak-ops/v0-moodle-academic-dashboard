@@ -187,6 +187,9 @@ $string['messagesubject'] = 'Subject';
 $string['messagebody'] = 'Message';
 $string['messagesent'] = 'Message sent successfully';
 $string['messageerror'] = 'Error sending message';
+$string['mail_default_subject'] = 'Message from Academic Dashboard';
+$string['mail_subject_no_activity'] = 'Lack of activity in course';
+$string['mail_subject_low_completion'] = 'Low completion percentage';
 
 // Settings.
 $string['settings'] = 'Settings';

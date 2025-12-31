@@ -76,6 +76,8 @@ $totalcount = $DB->count_records_sql("SELECT COUNT(DISTINCT c.id) FROM {local_ac
 $classes = $DB->get_records_sql($sql, $params, $page * $perpage, $perpage);
 
 echo $OUTPUT->header();
+
+echo local_academic_dashboard_render_navigation('classes');
 ?>
 
 <div class="academic-classes-page">

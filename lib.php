@@ -306,3 +306,148 @@ function local_academic_dashboard_get_atrisk_students($classid = 0, $inactivityd
 
     return $atrisk;
 }
+
+/**
+ * Render the navigation menu for the academic dashboard.
+ *
+ * @param string $currentpage The current page identifier
+ * @return string HTML for the navigation menu
+ */
+function local_academic_dashboard_render_navigation($currentpage = 'dashboard') {
+    global $OUTPUT;
+    
+    $context = context_system::instance();
+    $output = '';
+    
+    $menuitems = [];
+    
+    // Dashboard
+    $menuitems[] = [
+        'id' => 'dashboard',
+        'url' => new moodle_url('/local/academic_dashboard/index.php'),
+        'text' => get_string('nav_dashboard', 'local_academic_dashboard'),
+        'icon' => 'fa-home',
+        'active' => $currentpage === 'dashboard',
+        'show' => has_capability('local/academic_dashboard:viewdashboard', $context)
+    ];
+    
+    // Tasks
+    $menuitems[] = [
+        'id' => 'tasks',
+        'url' => new moodle_url('/local/academic_dashboard/tasks.php'),
+        'text' => get_string('nav_tasks', 'local_academic_dashboard'),
+        'icon' => 'fa-tasks',
+        'active' => $currentpage === 'tasks',
+        'show' => has_capability('local/academic_dashboard:managetasks', $context) || 
+                  has_capability('local/academic_dashboard:viewdashboard', $context)
+    ];
+    
+    // Students
+    $menuitems[] = [
+        'id' => 'students',
+        'url' => new moodle_url('/local/academic_dashboard/students.php'),
+        'text' => get_string('nav_students', 'local_academic_dashboard'),
+        'icon' => 'fa-user-graduate',
+        'active' => $currentpage === 'students',
+        'show' => has_capability('local/academic_dashboard:viewstudentcard', $context)
+    ];
+    
+    // Classes
+    $menuitems[] = [
+        'id' => 'classes',
+        'url' => new moodle_url('/local/academic_dashboard/classes.php'),
+        'text' => get_string('nav_classes', 'local_academic_dashboard'),
+        'icon' => 'fa-chalkboard-teacher',
+        'active' => $currentpage === 'classes',
+        'show' => has_capability('local/academic_dashboard:viewclasscard', $context)
+    ];
+    
+    // Service Requests
+    $menuitems[] = [
+        'id' => 'requests',
+        'url' => new moodle_url('/local/academic_dashboard/requests.php'),
+        'text' => get_string('nav_requests', 'local_academic_dashboard'),
+        'icon' => 'fa-headset',
+        'active' => $currentpage === 'requests',
+        'show' => has_capability('local/academic_dashboard:viewservicerequests', $context)
+    ];
+    
+    // Alerts
+    $menuitems[] = [
+        'id' => 'alerts',
+        'url' => new moodle_url('/local/academic_dashboard/alerts.php'),
+        'text' => get_string('nav_alerts', 'local_academic_dashboard'),
+        'icon' => 'fa-exclamation-triangle',
+        'active' => $currentpage === 'alerts',
+        'show' => has_capability('local/academic_dashboard:viewalerts', $context)
+    ];
+    
+    $output .= '<nav class="academic-dashboard-nav navbar navbar-expand-lg navbar-light bg-light mb-4">';
+    $output .= '<div class="container-fluid">';
+    $output .= '<span class="navbar-brand">' . get_string('academic_dashboard', 'local_academic_dashboard') . '</span>';
+    $output .= '<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#dashboardNav">';
+    $output .= '<span class="navbar-toggler-icon"></span>';
+    $output .= '</button>';
+    $output .= '<div class="collapse navbar-collapse" id="dashboardNav">';
+    $output .= '<ul class="navbar-nav mr-auto">';
+    
+    foreach ($menuitems as $item) {
+        if ($item['show']) {
+            $activeclass = $item['active'] ? ' active' : '';
+            $output .= '<li class="nav-item' . $activeclass . '">';
+            $output .= '<a class="nav-link" href="' . $item['url'] . '">';
+            $output .= '<i class="fa ' . $item['icon'] . '"></i> ';
+            $output .= $item['text'];
+            if ($item['active']) {
+                $output .= ' <span class="sr-only">(current)</span>';
+            }
+            $output .= '</a>';
+            $output .= '</li>';
+        }
+    }
+    
+    $output .= '</ul>';
+    $output .= '</div>';
+    $output .= '</div>';
+    $output .= '</nav>';
+    
+    return $output;
+}
+
+/**
+ * Create a URL for composing an email using local_mail plugin.
+ *
+ * @param int $userid The recipient user ID
+ * @param string $subject The email subject
+ * @param string $category The category/context for the email
+ * @return moodle_url The mail compose URL
+ */
+function local_academic_dashboard_get_mail_url($userid, $subject = '', $category = '') {
+    global $DB;
+    
+    // Default subject if not provided
+    if (empty($subject)) {
+        $subject = get_string('mail_default_subject', 'local_academic_dashboard');
+    }
+    
+    // Default category if not provided  
+    if (empty($category)) {
+        $category = get_string('academic_dashboard', 'local_academic_dashboard');
+    }
+    
+    // Check if local_mail plugin exists
+    if (file_exists($CFG->dirroot . '/local/mail/view.php')) {
+        // Use local_mail plugin
+        $url = new moodle_url('/local/mail/view.php', [
+            't' => 'drafts',
+            'to' => $userid,
+            'subject' => $subject,
+            'category' => $category
+        ]);
+    } else {
+        // Fallback to standard Moodle messaging
+        $url = new moodle_url('/message/index.php', ['id' => $userid]);
+    }
+    
+    return $url;
+}

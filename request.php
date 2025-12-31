@@ -29,7 +29,7 @@ if ($action === 'save' && confirm_sesskey()) {
     $data->requesttype = required_param('requesttype', PARAM_TEXT);
     $data->description = required_param('description', PARAM_TEXT);
     $data->assigneeid = optional_param('assigneeid', 0, PARAM_INT);
-    $data->internalnotes = optional_param('internalnotes', PARAM_RAW);
+    $data->internalnotes = optional_param('internalnotes', '', PARAM_RAW);
     $data->createtask = optional_param('createtask', 0, PARAM_INT);
 
     if ($requestid > 0) {

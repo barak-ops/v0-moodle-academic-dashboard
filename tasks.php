@@ -65,6 +65,8 @@ $managers = get_users_by_capability($context, 'local/academic_dashboard:viewdash
 $classes = $DB->get_records('local_acad_classes', [], 'name ASC');
 
 echo $OUTPUT->header();
+
+echo local_academic_dashboard_render_navigation('tasks');
 ?>
 
 <div class="tasks-page">

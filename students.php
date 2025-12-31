@@ -84,6 +84,8 @@ $students = $DB->get_records_sql($sql, $params, $page * $perpage, $perpage);
 $classes = $DB->get_records('local_acad_classes', [], 'name ASC');
 
 echo $OUTPUT->header();
+
+echo local_academic_dashboard_render_navigation('students');
 ?>
 
 <div class="academic-students-page">

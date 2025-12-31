@@ -139,6 +139,8 @@ $stats = [
 
 echo $OUTPUT->header();
 
+echo local_academic_dashboard_render_navigation('alerts');
+
 ?>
 <div class="academic-dashboard alerts-page">
     <!-- Alert Statistics -->

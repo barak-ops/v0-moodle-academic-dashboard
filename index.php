@@ -60,6 +60,8 @@ $classes = $DB->get_records('local_acad_classes', [], 'name ASC');
 
 echo $OUTPUT->header();
 
+echo local_academic_dashboard_render_navigation('dashboard');
+
 // Render dashboard.
 ?>
 <div class="academic-dashboard">
@@ -211,7 +213,8 @@ echo $OUTPUT->header();
                                 </div>
                                 <div class="student-actions">
                                     <?php if (has_capability('local/academic_dashboard:sendmessages', $context)): ?>
-                                        <a href="<?php echo new moodle_url('/message/index.php', ['id' => $student['userid']]); ?>" class="btn btn-sm btn-outline-primary">
+                                        <!-- Using local_mail instead of standard messaging -->
+                                        <a href="<?php echo local_academic_dashboard_get_mail_url($student['userid'], get_string('mail_subject_no_activity', 'local_academic_dashboard')); ?>" class="btn btn-sm btn-outline-primary">
                                             <i class="fa fa-envelope"></i>
                                         </a>
                                     <?php endif; ?>

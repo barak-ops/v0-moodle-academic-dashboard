@@ -96,6 +96,8 @@ if ($staffrole) {
 }
 
 echo $OUTPUT->header();
+
+echo local_academic_dashboard_render_navigation('requests');
 ?>
 
 <div class="service-requests-page">

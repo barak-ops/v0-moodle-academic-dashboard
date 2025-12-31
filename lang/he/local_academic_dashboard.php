@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 $string['pluginname'] = 'דשבורד אקדמי';
 $string['academic_dashboard'] = 'דשבורד אקדמי';
 $string['dashboard'] = 'דשבורד';
+$string['backtodashboard'] = 'חזרה לדשבורד';
 
 // Capabilities.
 $string['academic_dashboard:viewdashboard'] = 'צפייה בדשבורד האקדמי';
@@ -186,6 +187,9 @@ $string['messagesubject'] = 'נושא';
 $string['messagebody'] = 'תוכן ההודעה';
 $string['messagesent'] = 'ההודעה נשלחה בהצלחה';
 $string['messageerror'] = 'שגיאה בשליחת ההודעה';
+$string['mail_default_subject'] = 'הודעה מהדשבורד האקדמי';
+$string['mail_subject_no_activity'] = 'חוסר פעילות בקורס';
+$string['mail_subject_low_completion'] = 'אחוז השלמה נמוך';
 
 // Settings.
 $string['settings'] = 'הגדרות';
