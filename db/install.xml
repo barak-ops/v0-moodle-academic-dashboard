@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/academic_dashboard/db" VERSION="2025010100" COMMENT="XMLDB file for local_academic_dashboard">
+  <TABLES>
+    <!-- Tasks table -->
+    <TABLE NAME="local_acad_tasks" COMMENT="Academic management tasks">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="assigntype" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="general" SEQUENCE="false" COMMENT="student, class, general"/>
+        <FIELD NAME="studentid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="classid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="assigneeid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="User responsible for task"/>
+        <FIELD NAME="createdby" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="duedate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="priority" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="2" SEQUENCE="false" COMMENT="1=low, 2=medium, 3=high"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="open" SEQUENCE="false" COMMENT="open, inprogress, completed, cancelled"/>
+        <FIELD NAME="isrecurring" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="recurringfreq" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="daily, weekly, monthly"/>
+        <FIELD NAME="recurringday" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false" COMMENT="Day of week (0-6) or day of month"/>
+        <FIELD NAME="recurringend" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Course module ID"/>
+        <FIELD NAME="calendareventid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="servicerequestid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="assigneeid" TYPE="foreign" FIELDS="assigneeid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="createdby" TYPE="foreign" FIELDS="createdby" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="studentid" TYPE="foreign" FIELDS="studentid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="status" UNIQUE="false" FIELDS="status"/>
+        <INDEX NAME="duedate" UNIQUE="false" FIELDS="duedate"/>
+        <INDEX NAME="assigntype" UNIQUE="false" FIELDS="assigntype"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Task tags table -->
+    <TABLE NAME="local_acad_task_tags" COMMENT="Tags for tasks">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="tagtype" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="student, class, custom"/>
+        <FIELD NAME="tagvalue" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="refid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Reference ID for student/class"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="taskid" TYPE="foreign" FIELDS="taskid" REFTABLE="local_acad_tasks" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <!-- Task sharing table -->
+    <TABLE NAME="local_acad_task_shares" COMMENT="Task sharing with other users">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="taskid" TYPE="foreign" FIELDS="taskid" REFTABLE="local_acad_tasks" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="taskid_userid" UNIQUE="true" FIELDS="taskid, userid"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Service requests table -->
+    <TABLE NAME="local_acad_service_requests" COMMENT="Student service requests">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="studentid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="requesttype" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="open" SEQUENCE="false" COMMENT="open, inprogress, resolved, closed"/>
+        <FIELD NAME="assigneeid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="createdby" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="internalnotes" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="calendareventid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timeresolved" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="studentid" TYPE="foreign" FIELDS="studentid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="assigneeid" TYPE="foreign" FIELDS="assigneeid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="createdby" TYPE="foreign" FIELDS="createdby" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="status" UNIQUE="false" FIELDS="status"/>
+        <INDEX NAME="requesttype" UNIQUE="false" FIELDS="requesttype"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- Service request history table -->
+    <TABLE NAME="local_acad_request_history" COMMENT="Service request change history">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="requestid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="action" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="details" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="requestid" TYPE="foreign" FIELDS="requestid" REFTABLE="local_acad_service_requests" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <!-- Classes table (cohorts wrapper) -->
+    <TABLE NAME="local_acad_classes" COMMENT="Academic classes/groups">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="cohortid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Link to Moodle cohort"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Primary course for class"/>
+        <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Link to course group"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="cohortid" TYPE="foreign" FIELDS="cohortid" REFTABLE="cohort" REFFIELDS="id"/>
+        <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <!-- Class members table -->
+    <TABLE NAME="local_acad_class_members" COMMENT="Class membership">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="classid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="classid" TYPE="foreign" FIELDS="classid" REFTABLE="local_acad_classes" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="classid_userid" UNIQUE="true" FIELDS="classid, userid"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- User preferences for dashboard -->
+    <TABLE NAME="local_acad_user_prefs" COMMENT="User dashboard preferences">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="prefkey" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="prefvalue" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userid_prefkey" UNIQUE="true" FIELDS="userid, prefkey"/>
+      </INDEXES>
+    </TABLE>
+
+    <!-- At-risk students alerts -->
+    <TABLE NAME="local_acad_alerts" COMMENT="At-risk student alerts">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="studentid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="alerttype" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" COMMENT="no_activity, no_completion, low_grade"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="details" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="active" SEQUENCE="false" COMMENT="active, acknowledged, resolved"/>
+        <FIELD NAME="acknowledgedby" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="studentid" TYPE="foreign" FIELDS="studentid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="status" UNIQUE="false" FIELDS="status"/>
+        <INDEX NAME="alerttype" UNIQUE="false" FIELDS="alerttype"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
