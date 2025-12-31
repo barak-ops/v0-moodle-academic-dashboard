@@ -51,7 +51,7 @@ $sql = "SELECT DISTINCT u.id, u.firstname, u.lastname, u.email, u.lastaccess,
                COUNT(DISTINCT t.id) as opentasks,
                COUNT(DISTINCT sr.id) as openrequests
         FROM {user} u
-        LEFT JOIN {local_acad_tasks} t ON t.entitytype = 'student' AND t.entityid = u.id AND t.status != 'completed'
+        LEFT JOIN {local_acad_tasks} t ON t.assigntype = 'student' AND t.studentid = u.id AND t.status != 'completed'
         LEFT JOIN {local_acad_service_requests} sr ON sr.studentid = u.id AND sr.status = 'open'
         WHERE u.deleted = 0 AND u.suspended = 0";
 
