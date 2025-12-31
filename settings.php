@@ -60,4 +60,11 @@ if ($hassiteconfig) {
     ));
 
     $ADMIN->add('localplugins', $settings);
+    
+    $ADMIN->add('reports', new admin_externalpage(
+        'local_academic_dashboard_report',
+        get_string('pluginname', 'local_academic_dashboard'),
+        new moodle_url('/local/academic_dashboard/index.php'),
+        'local/academic_dashboard:viewdashboard'
+    ));
 }
