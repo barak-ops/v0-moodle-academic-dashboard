@@ -197,7 +197,7 @@ function local_academic_dashboard_get_student_completion($userid, $courseids = [
 
     $completiondata = [];
     
-    $sql = "SELECT c.id, c.fullname, c.shortname
+    $sql = "SELECT DISTINCT c.id, c.fullname, c.shortname
             FROM {course} c
             JOIN {enrol} e ON e.courseid = c.id
             JOIN {user_enrolments} ue ON ue.enrolid = e.id
