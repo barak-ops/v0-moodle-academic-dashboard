@@ -77,6 +77,25 @@ function local_academic_dashboard_extend_settings_navigation(settings_navigation
 }
 
 /**
+ * Add link to admin reports section.
+ *
+ * @param admin_root $ADMIN The admin root object.
+ */
+function local_academic_dashboard_extend_admin_navigation(admin_root $ADMIN) {
+    global $PAGE;
+
+    // Add link under Reports section in admin menu.
+    if ($ADMIN->locate('reports')) {
+        $ADMIN->add('reports', new admin_externalpage(
+            'local_academic_dashboard',
+            get_string('academic_dashboard', 'local_academic_dashboard'),
+            new moodle_url('/local/academic_dashboard/index.php'),
+            'local/academic_dashboard:viewdashboard'
+        ));
+    }
+}
+
+/**
  * Create a calendar event for a task.
  *
  * @param object $task The task object.
