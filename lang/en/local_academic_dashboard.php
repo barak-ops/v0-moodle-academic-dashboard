@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 $string['pluginname'] = 'Academic Dashboard';
 $string['academic_dashboard'] = 'Academic Dashboard';
 $string['dashboard'] = 'Dashboard';
+$string['backtodashboard'] = 'Back to Dashboard';
 
 // Capabilities.
 $string['academic_dashboard:viewdashboard'] = 'View academic dashboard';

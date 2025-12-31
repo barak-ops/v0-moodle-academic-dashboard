@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/local/academic_dashboard/lib.php');
+require_once($CFG->dirroot . '/calendar/lib.php');
 
 require_login();
 

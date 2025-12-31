@@ -68,6 +68,13 @@ echo $OUTPUT->header();
 ?>
 
 <div class="tasks-page">
+    <!-- Added back button to return to dashboard -->
+    <div class="mb-3">
+        <a href="<?php echo new moodle_url('/local/academic_dashboard/index.php'); ?>" class="btn btn-link">
+            <i class="fa fa-arrow-left"></i> <?php echo get_string('backtodashboard', 'local_academic_dashboard'); ?>
+        </a>
+    </div>
+    
     <!-- Header with Add button -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><?php echo get_string('tasks', 'local_academic_dashboard'); ?></h2>
