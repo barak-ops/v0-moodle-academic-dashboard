@@ -41,43 +41,18 @@ function xmldb_local_academic_dashboard_install() {
             'shortname' => 'academicmanager',
             'description' => 'Academic manager with full access to the academic dashboard, tasks, student cards, and service requests.',
             'archetype' => 'manager',
-            'capabilities' => [
-                'local/academic_dashboard:viewdashboard' => CAP_ALLOW,
-                'local/academic_dashboard:managetasks' => CAP_ALLOW,
-                'local/academic_dashboard:viewstudentcard' => CAP_ALLOW,
-                'local/academic_dashboard:viewclasscard' => CAP_ALLOW,
-                'local/academic_dashboard:sendmessages' => CAP_ALLOW,
-                'local/academic_dashboard:manageservicerequests' => CAP_ALLOW,
-                'local/academic_dashboard:viewservicerequests' => CAP_ALLOW,
-                'local/academic_dashboard:viewalerts' => CAP_ALLOW,
-                'local/academic_dashboard:viewcalendar' => CAP_ALLOW,
-            ],
         ],
         'pedagogicmanager' => [
             'name' => 'Pedagogic Manager',
             'shortname' => 'pedagogicmanager',
             'description' => 'Pedagogic manager with read access to dashboard and cards, without deletion or service request management.',
             'archetype' => 'editingteacher',
-            'capabilities' => [
-                'local/academic_dashboard:viewdashboard' => CAP_ALLOW,
-                'local/academic_dashboard:viewstudentcard' => CAP_ALLOW,
-                'local/academic_dashboard:viewclasscard' => CAP_ALLOW,
-                'local/academic_dashboard:viewservicerequests' => CAP_ALLOW,
-                'local/academic_dashboard:viewalerts' => CAP_ALLOW,
-                'local/academic_dashboard:viewcalendar' => CAP_ALLOW,
-            ],
         ],
         'studentservice' => [
             'name' => 'Student Service Representative',
             'shortname' => 'studentservice',
             'description' => 'Student service representative with access to service requests and partial student card access.',
             'archetype' => 'teacher',
-            'capabilities' => [
-                'local/academic_dashboard:viewdashboard' => CAP_ALLOW,
-                'local/academic_dashboard:viewstudentcard' => CAP_ALLOW,
-                'local/academic_dashboard:manageservicerequests' => CAP_ALLOW,
-                'local/academic_dashboard:viewservicerequests' => CAP_ALLOW,
-            ],
         ],
     ];
 
@@ -97,15 +72,7 @@ function xmldb_local_academic_dashboard_install() {
             // Allow role to be assigned at system context.
             set_role_contextlevels($roleid, [CONTEXT_SYSTEM]);
         }
-
-        // Assign capabilities to the role.
-        foreach ($roledata['capabilities'] as $capability => $permission) {
-            assign_capability($capability, $permission, $roleid, $systemcontext->id, true);
-        }
     }
-
-    // Mark the context as dirty to refresh capability cache.
-    $systemcontext->mark_dirty();
 
     return true;
 }
