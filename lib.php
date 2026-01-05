@@ -1,453 +1,187 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
-/**
- * Library functions for local_academic_dashboard.
- *
- * @package    local_academic_dashboard
- * @copyright  2025 Your Organization
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir . '/completionlib.php');
+require_once($CFG->dirroot . '/lib/completionlib.php');
 
 /**
- * Add navigation node to the navigation tree.
- *
- * @param global_navigation $navigation
+ * Get course statistics
  */
-function local_academic_dashboard_extend_navigation(global_navigation $navigation) {
-    global $PAGE;
-
-    $context = context_system::instance();
-    if (!has_capability('local/academic_dashboard:viewdashboard', $context)) {
-        return;
-    }
-
-    $node = $navigation->add(
-        get_string('academic_dashboard', 'local_academic_dashboard'),
-        new moodle_url('/local/academic_dashboard/index.php'),
-        navigation_node::TYPE_CUSTOM,
-        null,
-        'academic_dashboard',
-        new pix_icon('i/dashboard', '')
-    );
-
-    $node->showinflatnavigation = true;
-}
-
-/**
- * Add settings link in the admin tree.
- *
- * @param settings_navigation $settingsnav
- * @param context $context
- */
-function local_academic_dashboard_extend_settings_navigation(settings_navigation $settingsnav, context $context) {
-    global $PAGE;
-
-    if ($PAGE->context->contextlevel != CONTEXT_SYSTEM) {
-        return;
-    }
-
-    if (!has_capability('local/academic_dashboard:viewdashboard', $context)) {
-        return;
-    }
-
-    $settingsnav->add(
-        get_string('academic_dashboard', 'local_academic_dashboard'),
-        new moodle_url('/local/academic_dashboard/index.php'),
-        navigation_node::TYPE_SETTING,
-        null,
-        'academic_dashboard',
-        new pix_icon('i/dashboard', '')
-    );
-}
-
-/**
- * Add link to admin reports section.
- *
- * @param admin_root $ADMIN The admin root object.
- */
-function local_academic_dashboard_extend_admin_navigation(admin_root $ADMIN) {
-    global $PAGE;
-
-    // Add link under Reports section in admin menu.
-    if ($ADMIN->locate('reports')) {
-        $ADMIN->add('reports', new admin_externalpage(
-            'local_academic_dashboard',
-            get_string('academic_dashboard', 'local_academic_dashboard'),
-            new moodle_url('/local/academic_dashboard/index.php'),
-            'local/academic_dashboard:viewdashboard'
-        ));
-    }
-}
-
-/**
- * Create a calendar event for a task.
- *
- * @param object $task The task object.
- * @return int The calendar event ID.
- */
-function local_academic_dashboard_create_calendar_event($task) {
-    global $DB, $USER;
-
-    $event = new stdClass();
-    $event->name = $task->title;
-    $event->description = $task->description ?? '';
-    $event->format = FORMAT_HTML;
-    $event->eventtype = 'user';
-    $event->userid = $task->assigneeid;
-    $event->timestart = $task->duedate;
-    $event->timeduration = 0;
-    $event->visible = 1;
-    $event->component = 'local_academic_dashboard';
-    $event->modulename = '';
-    $event->instance = 0;
-
-    $calendarevent = \calendar_event::create($event, false);
-
-    return $calendarevent->id;
-}
-
-/**
- * Update a calendar event for a task.
- *
- * @param object $task The task object.
- */
-function local_academic_dashboard_update_calendar_event($task) {
+function local_academic_dashboard_get_course_stats($courseid) {
     global $DB;
-
-    if (empty($task->calendareventid)) {
-        return;
-    }
-
-    $event = calendar_event::load($task->calendareventid);
-    if ($event) {
-        $data = new stdClass();
-        $data->name = $task->title;
-        $data->description = $task->description ?? '';
-        $data->timestart = $task->duedate;
-        $event->update($data, false);
-    }
-}
-
-/**
- * Delete a calendar event for a task.
- *
- * @param int $eventid The calendar event ID.
- */
-function local_academic_dashboard_delete_calendar_event($eventid) {
-    if (empty($eventid)) {
-        return;
-    }
-
-    $event = calendar_event::load($eventid);
-    if ($event) {
-        $event->delete(true);
-    }
-}
-
-/**
- * Send a message using Moodle messaging API.
- *
- * @param int $userfrom The sender user ID.
- * @param int $userto The recipient user ID.
- * @param string $subject The message subject.
- * @param string $message The message content.
- * @return bool Success status.
- */
-function local_academic_dashboard_send_message($userfrom, $userto, $subject, $message) {
-    $eventdata = new \core\message\message();
-    $eventdata->component = 'local_academic_dashboard';
-    $eventdata->name = 'notification';
-    $eventdata->userfrom = $userfrom;
-    $eventdata->userto = $userto;
-    $eventdata->subject = $subject;
-    $eventdata->fullmessage = $message;
-    $eventdata->fullmessageformat = FORMAT_PLAIN;
-    $eventdata->fullmessagehtml = format_text($message, FORMAT_MARKDOWN);
-    $eventdata->smallmessage = $subject;
-    $eventdata->notification = 1;
-
-    return message_send($eventdata);
-}
-
-/**
- * Get student completion data for courses.
- *
- * @param int $userid The user ID.
- * @param array $courseids Optional array of course IDs to filter.
- * @return array Array of course completion data.
- */
-function local_academic_dashboard_get_student_completion($userid, $courseids = []) {
-    global $DB;
-
-    $completiondata = [];
     
-    $sql = "SELECT DISTINCT c.id, c.fullname, c.shortname, c.enablecompletion
-            FROM {course} c
-            JOIN {enrol} e ON e.courseid = c.id
-            JOIN {user_enrolments} ue ON ue.enrolid = e.id
-            WHERE ue.userid = :userid
-            AND c.id != 1";  // Exclude site course
-    $params = ['userid' => $userid];
-
-    if (!empty($courseids)) {
-        list($insql, $inparams) = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, 'courseid');
-        $sql .= " AND c.id $insql";
-        $params = array_merge($params, $inparams);
-    }
-
-    try {
-        $courses = $DB->get_records_sql($sql, $params);
-        
-        foreach ($courses as $course) {
-            // Check if completion is enabled before trying to get completion info
-            if (empty($course->enablecompletion)) {
-                continue;
-            }
-            
-            $completion = new completion_info($course);
-            if ($completion->is_enabled()) {
-                $percentage = \core_completion\progress::get_course_progress_percentage($course, $userid);
-                $completiondata[$course->id] = [
-                    'courseid' => $course->id,
-                    'coursename' => $course->fullname,
-                    'completed' => $completion->is_course_complete($userid),
-                    'progress' => $percentage,
-                ];
-            }
-        }
-    } catch (Exception $e) {
-        // Log error but don't break the dashboard
-        debugging('Error getting student completion: ' . $e->getMessage(), DEBUG_DEVELOPER);
-    }
-
-    return $completiondata;
+    $stats = new stdClass();
+    
+    // Count students
+    $context = context_course::instance($courseid);
+    $students = get_enrolled_users($context, 'mod/assignment:submit', 0, 'u.id', null, 0, 0, true);
+    $stats->students = count($students);
+    
+    // Count resources
+    $stats->resources = $DB->count_records('resource', ['course' => $courseid]);
+    
+    // Count quizzes
+    $stats->quizzes = $DB->count_records('quiz', ['course' => $courseid]);
+    
+    // Count assignments
+    $stats->assignments = $DB->count_records('assign', ['course' => $courseid]);
+    
+    // Count overdue (assignments + quizzes with due date passed)
+    $now = time();
+    $overdue = 0;
+    
+    $overdueassignments = $DB->count_records_select('assign', 
+        'course = ? AND duedate > 0 AND duedate < ?', 
+        [$courseid, $now]);
+    $overdue += $overdueassignments;
+    
+    $overduequizzes = $DB->count_records_select('quiz', 
+        'course = ? AND timeclose > 0 AND timeclose < ?', 
+        [$courseid, $now]);
+    $overdue += $overduequizzes;
+    
+    $stats->overdue = $overdue;
+    
+    // Count remaining (assignments + quizzes with future due date)
+    $remaining = 0;
+    
+    $remainingassignments = $DB->count_records_select('assign', 
+        'course = ? AND duedate > 0 AND duedate >= ?', 
+        [$courseid, $now]);
+    $remaining += $remainingassignments;
+    
+    $remainingquizzes = $DB->count_records_select('quiz', 
+        'course = ? AND timeclose > 0 AND timeclose >= ?', 
+        [$courseid, $now]);
+    $remaining += $remainingquizzes;
+    
+    $stats->remaining = $remaining;
+    
+    return $stats;
 }
 
 /**
- * Get students at risk based on inactivity or low completion.
- *
- * @param int $classid Optional class ID to filter.
- * @param int $inactivitydays Number of days without activity.
- * @param float $completionthreshold Minimum completion percentage.
- * @return array Array of at-risk students.
+ * Get student progress in course
  */
-function local_academic_dashboard_get_atrisk_students($classid = 0, $inactivitydays = 7, $completionthreshold = 50) {
+function local_academic_dashboard_get_student_progress($userid, $courseid) {
+    $course = get_course($courseid);
+    $completion = new completion_info($course);
+    
+    if (!$completion->is_enabled()) {
+        return null;
+    }
+    
+    $percentage = \core_completion\progress::get_course_progress_percentage($course, $userid);
+    
+    return $percentage;
+}
+
+/**
+ * Get student attendance percentage
+ */
+function local_academic_dashboard_get_student_attendance($userid, $courseid) {
     global $DB;
-
-    $atrisk = [];
-    $threshold = time() - ($inactivitydays * 24 * 60 * 60);
-
-    // Get students based on class filter.
-    $sql = "SELECT DISTINCT u.id, u.firstname, u.lastname, u.email, u.lastaccess
-            FROM {user} u";
-
-    $params = [];
-
-    if ($classid > 0) {
-        $sql .= " JOIN {local_acad_class_members} cm ON cm.userid = u.id
-                  WHERE cm.classid = :classid";
-        $params['classid'] = $classid;
-    } else {
-        $sql .= " WHERE u.deleted = 0 AND u.suspended = 0";
+    
+    // Check if attendance module exists
+    if (!$DB->record_exists('modules', ['name' => 'attendance'])) {
+        return null;
     }
-
-    $students = $DB->get_records_sql($sql, $params);
-
-    foreach ($students as $student) {
-        $reasons = [];
-
-        // Check inactivity.
-        if ($student->lastaccess < $threshold) {
-            $reasons[] = 'no_activity';
-        }
-
-        // Check completion.
-        $completiondata = local_academic_dashboard_get_student_completion($student->id);
-        $lowcompletion = false;
-        foreach ($completiondata as $data) {
-            if ($data['progress'] !== null && $data['progress'] < $completionthreshold) {
-                $lowcompletion = true;
-                break;
-            }
-        }
-        if ($lowcompletion) {
-            $reasons[] = 'no_completion';
-        }
-
-        if (!empty($reasons)) {
-            $atrisk[] = [
-                'userid' => $student->id,
-                'firstname' => $student->firstname,
-                'lastname' => $student->lastname,
-                'email' => $student->email,
-                'lastaccess' => $student->lastaccess,
-                'reasons' => $reasons,
-            ];
-        }
+    
+    $sql = "SELECT 
+                COUNT(CASE WHEN al.statusid IN (
+                    SELECT id FROM {attendance_statuses} WHERE attendanceid = a.id AND acronym IN ('P', 'L')
+                ) THEN 1 END) as present,
+                COUNT(*) as total
+            FROM {attendance} a
+            JOIN {attendance_sessions} ats ON ats.attendanceid = a.id
+            LEFT JOIN {attendance_log} al ON al.sessionid = ats.id AND al.studentid = ?
+            WHERE a.course = ?";
+    
+    $result = $DB->get_record_sql($sql, [$userid, $courseid]);
+    
+    if ($result && $result->total > 0) {
+        return round(($result->present / $result->total) * 100);
     }
-
-    return $atrisk;
+    
+    return null;
 }
 
 /**
- * Render the navigation menu for the academic dashboard.
- *
- * @param string $currentpage The current page identifier
- * @return string HTML for the navigation menu
+ * Check if user is a teacher
  */
-function local_academic_dashboard_render_navigation($currentpage = 'dashboard') {
+function local_academic_dashboard_is_teacher($userid) {
+    global $DB;
+    
+    // Get first course where user is enrolled
+    $sql = "SELECT DISTINCT c.id
+            FROM {course} c
+            JOIN {context} ctx ON ctx.instanceid = c.id AND ctx.contextlevel = 50
+            JOIN {role_assignments} ra ON ra.contextid = ctx.id
+            WHERE ra.userid = ? AND c.id > 1
+            LIMIT 1";
+    
+    $course = $DB->get_record_sql($sql, [$userid]);
+    
+    if (!$course) {
+        return false;
+    }
+    
+    $context = context_course::instance($course->id);
+    return has_capability('moodle/course:update', $context, $userid);
+}
+
+/**
+ * Render email modal
+ */
+function local_academic_dashboard_render_email_modal($recipients = [], $courseid = null) {
     global $OUTPUT;
     
-    $context = context_system::instance();
-    $output = '';
+    $html = '<div class="modal fade" id="emailModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">' . get_string('send_email', 'local_academic_dashboard') . '</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="emailForm" method="post">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>' . get_string('email_to', 'local_academic_dashboard') . '</label>
+                            <input type="text" class="form-control" name="to" value="' . implode(', ', $recipients) . '" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>' . get_string('email_cc', 'local_academic_dashboard') . '</label>
+                            <select class="form-control" name="cc[]" multiple>';
     
-    $menuitems = [];
-    
-    // Dashboard
-    $menuitems[] = [
-        'id' => 'dashboard',
-        'url' => new moodle_url('/local/academic_dashboard/index.php'),
-        'text' => get_string('nav_dashboard', 'local_academic_dashboard'),
-        'icon' => 'fa-home',
-        'active' => $currentpage === 'dashboard',
-        'show' => has_capability('local/academic_dashboard:viewdashboard', $context)
-    ];
-    
-    // Tasks
-    $menuitems[] = [
-        'id' => 'tasks',
-        'url' => new moodle_url('/local/academic_dashboard/tasks.php'),
-        'text' => get_string('nav_tasks', 'local_academic_dashboard'),
-        'icon' => 'fa-tasks',
-        'active' => $currentpage === 'tasks',
-        'show' => has_capability('local/academic_dashboard:managetasks', $context) || 
-                  has_capability('local/academic_dashboard:viewdashboard', $context)
-    ];
-    
-    // Students
-    $menuitems[] = [
-        'id' => 'students',
-        'url' => new moodle_url('/local/academic_dashboard/students.php'),
-        'text' => get_string('nav_students', 'local_academic_dashboard'),
-        'icon' => 'fa-user-graduate',
-        'active' => $currentpage === 'students',
-        'show' => has_capability('local/academic_dashboard:viewstudentcard', $context)
-    ];
-    
-    // Classes
-    $menuitems[] = [
-        'id' => 'classes',
-        'url' => new moodle_url('/local/academic_dashboard/classes.php'),
-        'text' => get_string('nav_classes', 'local_academic_dashboard'),
-        'icon' => 'fa-chalkboard-teacher',
-        'active' => $currentpage === 'classes',
-        'show' => has_capability('local/academic_dashboard:viewclasscard', $context)
-    ];
-    
-    // Service Requests
-    $menuitems[] = [
-        'id' => 'requests',
-        'url' => new moodle_url('/local/academic_dashboard/requests.php'),
-        'text' => get_string('nav_requests', 'local_academic_dashboard'),
-        'icon' => 'fa-headset',
-        'active' => $currentpage === 'requests',
-        'show' => has_capability('local/academic_dashboard:viewservicerequests', $context)
-    ];
-    
-    // Alerts
-    $menuitems[] = [
-        'id' => 'alerts',
-        'url' => new moodle_url('/local/academic_dashboard/alerts.php'),
-        'text' => get_string('nav_alerts', 'local_academic_dashboard'),
-        'icon' => 'fa-exclamation-triangle',
-        'active' => $currentpage === 'alerts',
-        'show' => has_capability('local/academic_dashboard:viewalerts', $context)
-    ];
-    
-    $output .= '<nav class="academic-dashboard-nav navbar navbar-expand-lg navbar-light bg-light mb-4">';
-    $output .= '<div class="container-fluid">';
-    $output .= '<span class="navbar-brand">' . get_string('academic_dashboard', 'local_academic_dashboard') . '</span>';
-    $output .= '<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#dashboardNav">';
-    $output .= '<span class="navbar-toggler-icon"></span>';
-    $output .= '</button>';
-    $output .= '<div class="collapse navbar-collapse" id="dashboardNav">';
-    $output .= '<ul class="navbar-nav mr-auto">';
-    
-    foreach ($menuitems as $item) {
-        if ($item['show']) {
-            $activeclass = $item['active'] ? ' active' : '';
-            $output .= '<li class="nav-item' . $activeclass . '">';
-            $output .= '<a class="nav-link" href="' . $item['url'] . '">';
-            $output .= '<i class="fa ' . $item['icon'] . '"></i> ';
-            $output .= $item['text'];
-            if ($item['active']) {
-                $output .= ' <span class="sr-only">(current)</span>';
-            }
-            $output .= '</a>';
-            $output .= '</li>';
+    if ($courseid) {
+        $context = context_course::instance($courseid);
+        $users = get_enrolled_users($context);
+        
+        foreach ($users as $user) {
+            $html .= '<option value="' . $user->id . '">' . fullname($user) . ' (' . $user->email . ')</option>';
         }
     }
     
-    $output .= '</ul>';
-    $output .= '</div>';
-    $output .= '</div>';
-    $output .= '</nav>';
+    $html .= '          </select>
+                        </div>
+                        <div class="form-group">
+                            <label>' . get_string('email_subject', 'local_academic_dashboard') . '</label>
+                            <input type="text" class="form-control" name="subject" value="' . get_string('email_default_subject', 'local_academic_dashboard') . '">
+                        </div>
+                        <div class="form-group">
+                            <label>' . get_string('email_content', 'local_academic_dashboard') . '</label>
+                            <textarea class="form-control" name="content" rows="8"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">' . get_string('cancel') . '</button>
+                        <button type="submit" class="btn btn-primary">' . get_string('email_send', 'local_academic_dashboard') . '</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>';
     
-    return $output;
-}
-
-/**
- * Create a URL for composing an email using local_mail plugin.
- *
- * @param int $userid The recipient user ID
- * @param string $subject The email subject
- * @param string $category The category/context for the email
- * @return moodle_url The mail compose URL
- */
-function local_academic_dashboard_get_mail_url($userid, $subject = '', $category = '') {
-    global $DB;
-    
-    // Default subject if not provided
-    if (empty($subject)) {
-        $subject = get_string('mail_default_subject', 'local_academic_dashboard');
-    }
-    
-    // Default category if not provided  
-    if (empty($category)) {
-        $category = get_string('academic_dashboard', 'local_academic_dashboard');
-    }
-    
-    // Check if local_mail plugin exists
-    if (file_exists($CFG->dirroot . '/local/mail/view.php')) {
-        // Use local_mail plugin
-        $url = new moodle_url('/local/mail/view.php', [
-            't' => 'drafts',
-            'to' => $userid,
-            'subject' => $subject,
-            'category' => $category
-        ]);
-    } else {
-        // Fallback to standard Moodle messaging
-        $url = new moodle_url('/message/index.php', ['id' => $userid]);
-    }
-    
-    return $url;
+    return $html;
 }

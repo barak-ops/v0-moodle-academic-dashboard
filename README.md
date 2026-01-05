@@ -1,30 +1,57 @@
-# Moodle academic dashboard
+# Moodle Academic Dashboard Plugin
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+לוח שליטה אקדמי למודל (Academic Dashboard for Moodle)
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/barak-8347s-projects/v0-moodle-academic-dashboard)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/nPIsMsSGFWf)
+## תיאור התוסף / Plugin Description
 
-## Overview
+תוסף מודל מסוג דוח המציג מידע מקיף על קורסים וסטודנטים.
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+A Moodle local plugin (report type) that provides comprehensive information about courses and students.
 
-## Deployment
+## תכונות עיקריות / Main Features
 
-Your project is live at:
+### עמוד ראשי / Main Page
+- תצוגת קורסים: רשימת כל הקורסים במערכת עם סטטיסטיקות
+- תצוגת משתמשים: חיפוש דינמי של משתמשים
 
-**[https://vercel.com/barak-8347s-projects/v0-moodle-academic-dashboard](https://vercel.com/barak-8347s-projects/v0-moodle-academic-dashboard)**
+### עמוד קורס / Course Page
+- סטטיסטיקות: משאבים, מבחנים, מטלות, משימות שעברו ונותרו
+- רשימת מורים ותלמידים
+- ניהול קבוצות עם Drag & Drop
+- התקדמות ונוכחות תלמידים
 
-## Build your app
+### עמוד תלמיד / Student Page
+- התקדמות כללית בכל הקורסים
+- נוכחות כללית
+- רשימת קורסים עם אפשרות לשנות קבוצות
+- משימות שעברו
 
-Continue building your app on:
+### עמוד מורה / Teacher Page
+- סטטיסטיקות על קורסים
+- רשימת תלמידים עם משימות שעברו
+- כמות בחנים ומטלות בכל הקורסים
 
-**[https://v0.app/chat/nPIsMsSGFWf](https://v0.app/chat/nPIsMsSGFWf)**
+## התקנה / Installation
 
-## How It Works
+1. העלה את התיקייה `local/academic_dashboard` לתיקיית מודל שלך
+2. גש ל-Site Administration → Notifications
+3. לחץ על "Upgrade Moodle database now"
+4. התוסף יופיע ב-Site Administration → Reports → Academic Dashboard
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+## דרישות מערכת / Requirements
+
+- Moodle 4.0 ומעלה
+- PHP 7.4 ומעלה
+
+## תמיכה בשפות / Language Support
+
+- עברית (he)
+- English (en)
+
+## רישיון / License
+
+GPL v3
+
+## יוצר / Author
+
+Built with v0.app
