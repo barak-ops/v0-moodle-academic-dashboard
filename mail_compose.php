@@ -7,6 +7,7 @@ require_login();
 require_capability('local/academic_dashboard:view', context_system::instance());
 
 $courseid = optional_param('courseid', 0, PARAM_INT);
+$groupid = optional_param('groupid', 0, PARAM_INT);
 $to = optional_param('to', '', PARAM_TEXT);
 $action = optional_param('action', '', PARAM_TEXT);
 
@@ -77,11 +78,34 @@ echo $OUTPUT->header();
 $course = null;
 $context = null;
 $groups = [];
+$default_recipients = [];
 
 if ($courseid) {
     $course = $DB->get_record('course', ['id' => $courseid]);
     $context = context_course::instance($courseid);
     $groups = groups_get_all_groups($courseid);
+    
+    if ($groupid > 0) {
+        $members = groups_get_members($groupid);
+        foreach ($members as $member) {
+            $default_recipients[] = ['email' => $member->email, 'name' => fullname($member)];
+        }
+    } else {
+        $sql = "SELECT DISTINCT u.id, u.email, u.firstname, u.lastname
+                FROM {user} u
+                JOIN {user_enrolments} ue ON ue.userid = u.id
+                JOIN {enrol} e ON e.id = ue.enrolid
+                WHERE e.courseid = ? AND u.deleted = 0 AND ue.status = 0
+                ORDER BY u.lastname, u.firstname";
+        
+        $students = $DB->get_records_sql($sql, [$courseid]);
+        foreach ($students as $student) {
+            $isteacher = has_capability('moodle/course:update', $context, $student->id);
+            if (!$isteacher) {
+                $default_recipients[] = ['email' => $student->email, 'name' => fullname($student)];
+            }
+        }
+    }
 }
 
 ?>
@@ -187,14 +211,25 @@ if ($courseid) {
         <input type="hidden" name="to_recipients" id="toRecipientsInput">
         <input type="hidden" name="cc_recipients" id="ccRecipientsInput">
         
-        <!-- To Field -->
+        <?php if ($courseid && $course && count($groups) > 0): ?>
+        <div class="form-group">
+            <label><?php echo get_string('select_group', 'local_academic_dashboard'); ?></label>
+            <select id="groupFilterSelect" class="form-control" onchange="filterByGroup()">
+                <option value="0"><?php echo get_string('all_students', 'local_academic_dashboard'); ?></option>
+                <?php foreach ($groups as $group): ?>
+                <option value="<?php echo $group->id; ?>" <?php echo ($groupid == $group->id) ? 'selected' : ''; ?>>
+                    <?php echo format_string($group->name); ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <?php endif; ?>
+        
         <div class="form-group">
             <label><?php echo get_string('email_to', 'local_academic_dashboard'); ?></label>
             <div class="recipient-tags" id="toRecipients"></div>
-            <input type="text" id="toInput" placeholder="<?php echo get_string('email_add_recipient', 'local_academic_dashboard'); ?>">
         </div>
         
-        <!-- CC Field -->
         <div class="form-group">
             <label><?php echo get_string('email_cc', 'local_academic_dashboard'); ?></label>
             <div class="recipient-tags" id="ccRecipients"></div>
@@ -202,25 +237,6 @@ if ($courseid) {
             <?php if ($courseid && $course): ?>
             <div class="cc-options">
                 <h5><?php echo get_string('email_cc_options', 'local_academic_dashboard'); ?></h5>
-                
-                <button type="button" class="btn btn-sm btn-secondary" onclick="addAllStudents()">
-                    <?php echo get_string('email_cc_all_students', 'local_academic_dashboard'); ?>
-                </button>
-                
-                <?php if (count($groups) > 0): ?>
-                <div class="form-group mt-2">
-                    <label><?php echo get_string('email_cc_group', 'local_academic_dashboard'); ?></label>
-                    <select id="groupSelect" class="form-control">
-                        <option value=""><?php echo get_string('select_group', 'local_academic_dashboard'); ?></option>
-                        <?php foreach ($groups as $group): ?>
-                        <option value="<?php echo $group->id; ?>"><?php echo format_string($group->name); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="addGroupMembers()">
-                        <?php echo get_string('email_cc_add_group', 'local_academic_dashboard'); ?>
-                    </button>
-                </div>
-                <?php endif; ?>
                 
                 <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="addTeachers()">
                     <?php echo get_string('email_cc_teachers', 'local_academic_dashboard'); ?>
@@ -247,19 +263,16 @@ if ($courseid) {
             <?php endif; ?>
         </div>
         
-        <!-- Subject Field -->
         <div class="form-group">
             <label><?php echo get_string('email_subject', 'local_academic_dashboard'); ?></label>
             <input type="text" name="subject" id="subject" value="<?php echo get_string('email_default_subject', 'local_academic_dashboard'); ?>" required>
         </div>
         
-        <!-- Content Field -->
         <div class="form-group">
             <label><?php echo get_string('email_content', 'local_academic_dashboard'); ?></label>
             <textarea name="content" id="content" required></textarea>
         </div>
         
-        <!-- Send Button -->
         <div class="form-group text-right">
             <button type="button" class="btn btn-secondary" onclick="window.close();">
                 <?php echo get_string('cancel'); ?>
@@ -275,27 +288,43 @@ if ($courseid) {
 const toRecipients = new Set();
 const ccRecipients = new Set();
 
-<?php if ($to): ?>
-addRecipient('to', '<?php echo addslashes($to); ?>', '<?php echo addslashes($to); ?>');
-<?php endif; ?>
+const defaultRecipients = <?php echo json_encode($default_recipients); ?>;
 
 <?php if ($courseid && $course): ?>
 const courseId = <?php echo $courseid; ?>;
-const courseUsers = <?php echo json_encode(array_values(array_map(function($u) {
-    return ['email' => $u->email, 'name' => fullname($u), 'roles' => get_user_roles(context_course::instance($GLOBALS['courseid']), $u->id)];
+const courseUsers = <?php echo json_encode(array_values(array_map(function($u) use ($context) {
+    return [
+        'email' => $u->email, 
+        'name' => fullname($u), 
+        'isteacher' => has_capability('moodle/course:update', $context, $u->id)
+    ];
 }, get_enrolled_users($context)))); ?>;
 
-const groups = <?php echo json_encode(array_map(function($g) use ($courseid) {
+const groups = <?php echo json_encode(array_map(function($g) use ($courseid, $context) {
     $members = groups_get_members($g->id);
     return [
         'id' => $g->id,
         'name' => $g->name,
-        'members' => array_map(function($m) {
-            return ['email' => $m->email, 'name' => fullname($m)];
-        }, $members)
+        'members' => array_values(array_map(function($m) use ($context) {
+            return [
+                'email' => $m->email, 
+                'name' => fullname($m),
+                'isteacher' => has_capability('moodle/course:update', $context, $m->id)
+            ];
+        }, $members))
     ];
 }, array_values($groups))); ?>;
 <?php endif; ?>
+
+window.addEventListener('DOMContentLoaded', function() {
+    defaultRecipients.forEach(recipient => {
+        addRecipient('to', recipient.email, recipient.name);
+    });
+    
+    <?php if ($to): ?>
+    addRecipient('to', '<?php echo addslashes($to); ?>', '<?php echo addslashes($to); ?>');
+    <?php endif; ?>
+});
 
 function addRecipient(type, email, name) {
     const set = type === 'to' ? toRecipients : ccRecipients;
@@ -342,34 +371,16 @@ function updateHiddenInputs() {
 }
 
 <?php if ($courseid && $course): ?>
-function addAllStudents() {
-    courseUsers.forEach(user => {
-        const isTeacher = user.roles && user.roles.some(r => r.shortname === 'editingteacher' || r.shortname === 'teacher');
-        if (!isTeacher) {
-            addRecipient('cc', user.email, user.name);
-        }
-    });
-}
-
-function addGroupMembers() {
-    const groupId = document.getElementById('groupSelect').value;
-    if (!groupId) {
-        alert('<?php echo get_string('select_group', 'local_academic_dashboard'); ?>');
-        return;
-    }
-    
-    const group = groups.find(g => g.id == groupId);
-    if (group && group.members) {
-        group.members.forEach(member => {
-            addRecipient('cc', member.email, member.name);
-        });
-    }
+function filterByGroup() {
+    const groupId = document.getElementById('groupFilterSelect').value;
+    const url = new URL(window.location.href);
+    url.searchParams.set('groupid', groupId);
+    window.location.href = url.toString();
 }
 
 function addTeachers() {
     courseUsers.forEach(user => {
-        const isTeacher = user.roles && user.roles.some(r => r.shortname === 'editingteacher' || r.shortname === 'teacher');
-        if (isTeacher) {
+        if (user.isteacher) {
             addRecipient('cc', user.email, user.name);
         }
     });
@@ -397,7 +408,7 @@ document.getElementById('emailForm').addEventListener('submit', function(e) {
     
     const formData = new FormData(this);
     
-    fetch('mail_compose.php?courseid=<?php echo $courseid; ?>', {
+    fetch('mail_compose.php?courseid=<?php echo $courseid; ?>&groupid=<?php echo $groupid; ?>', {
         method: 'POST',
         body: formData
     })
