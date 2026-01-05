@@ -1,6 +1,7 @@
 <?php
 require_once('../../config.php');
 require_once($CFG->dirroot . '/group/lib.php');
+require_once($CFG->dirroot . '/local/academic_dashboard/lib.php');
 
 require_login();
 require_capability('local/academic_dashboard:view', context_system::instance());
