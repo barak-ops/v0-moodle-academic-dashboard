@@ -1,5 +1,8 @@
 <?php
 require_once('../../config.php');
+require_once(__DIR__ . '/lib.php');
+
+global $DB;
 
 require_login();
 require_capability('local/academic_dashboard:view', context_system::instance());
