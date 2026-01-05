@@ -63,56 +63,56 @@ echo $OUTPUT->header();
     <!-- Statistics -->
     <div class="row mb-4">
         <div class="col-md-2">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fa fa-file fa-2x"></i>
-                    <h4><?php echo $stats->resources; ?></h4>
-                    <small><?php echo get_string('resources', 'local_academic_dashboard'); ?></small>
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fa fa-file fa-3x text-muted mb-2"></i>
+                    <h4 class="mb-0"><?php echo $stats->resources; ?></h4>
+                    <small class="text-muted"><?php echo get_string('resources', 'local_academic_dashboard'); ?></small>
                 </div>
             </div>
         </div>
         <div class="col-md-2">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fa fa-question-circle fa-2x"></i>
-                    <h4><?php echo $stats->quizzes; ?></h4>
-                    <small><?php echo get_string('quizzes', 'local_academic_dashboard'); ?></small>
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fa fa-question-circle fa-3x text-info mb-2"></i>
+                    <h4 class="mb-0"><?php echo $stats->quizzes; ?></h4>
+                    <small class="text-muted"><?php echo get_string('quizzes', 'local_academic_dashboard'); ?></small>
                 </div>
             </div>
         </div>
         <div class="col-md-2">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fa fa-tasks fa-2x"></i>
-                    <h4><?php echo $stats->assignments; ?></h4>
-                    <small><?php echo get_string('assignments', 'local_academic_dashboard'); ?></small>
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fa fa-tasks fa-3x text-success mb-2"></i>
+                    <h4 class="mb-0"><?php echo $stats->assignments; ?></h4>
+                    <small class="text-muted"><?php echo get_string('assignments', 'local_academic_dashboard'); ?></small>
                 </div>
             </div>
         </div>
         <div class="col-md-2">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fa fa-exclamation-triangle fa-2x text-danger"></i>
-                    <h4><?php echo $stats->overdue; ?></h4>
-                    <small><?php echo get_string('overdue', 'local_academic_dashboard'); ?></small>
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fa fa-exclamation-triangle fa-3x text-danger mb-2"></i>
+                    <h4 class="mb-0"><?php echo $stats->overdue; ?></h4>
+                    <small class="text-muted"><?php echo get_string('overdue', 'local_academic_dashboard'); ?></small>
                 </div>
             </div>
         </div>
         <div class="col-md-2">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fa fa-clock-o fa-2x text-primary"></i>
-                    <h4><?php echo $stats->remaining; ?></h4>
-                    <small><?php echo get_string('remaining', 'local_academic_dashboard'); ?></small>
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fa fa-clock-o fa-3x text-primary mb-2"></i>
+                    <h4 class="mb-0"><?php echo $stats->remaining; ?></h4>
+                    <small class="text-muted"><?php echo get_string('remaining', 'local_academic_dashboard'); ?></small>
                 </div>
             </div>
         </div>
         <div class="col-md-2">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fa fa-users fa-2x"></i>
-                    <h4><?php echo $stats->students; ?></h4>
-                    <small><?php echo get_string('students', 'local_academic_dashboard'); ?></small>
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fa fa-users fa-3x text-secondary mb-2"></i>
+                    <h4 class="mb-0"><?php echo $stats->students; ?></h4>
+                    <small class="text-muted"><?php echo get_string('students', 'local_academic_dashboard'); ?></small>
                 </div>
             </div>
         </div>

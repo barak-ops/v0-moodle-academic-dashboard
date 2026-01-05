@@ -63,39 +63,49 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
     <div class="row mb-4">
         <!-- Replaced progress bar with pie chart -->
         <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5><?php echo get_string('progress', 'local_academic_dashboard'); ?></h5>
-                    <canvas id="progressChart" width="150" height="150"></canvas>
-                    <h4 class="mt-2"><?php echo $avgprogress; ?>%</h4>
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <!-- Smaller pie chart to match icon size (64x64) -->
+                    <canvas id="progressChart" width="64" height="64" class="mr-3"></canvas>
+                    <div>
+                        <h3 class="mb-0"><?php echo $avgprogress; ?>%</h3>
+                        <small class="text-muted"><?php echo get_string('progress', 'local_academic_dashboard'); ?></small>
+                    </div>
                 </div>
             </div>
         </div>
         <!-- Replaced progress bar with pie chart -->
         <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5><?php echo get_string('attendance', 'local_academic_dashboard'); ?></h5>
-                    <canvas id="attendanceChart" width="150" height="150"></canvas>
-                    <h4 class="mt-2"><?php echo $avgattendance; ?>%</h4>
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <!-- Smaller pie chart to match icon size (64x64) -->
+                    <canvas id="attendanceChart" width="64" height="64" class="mr-3"></canvas>
+                    <div>
+                        <h3 class="mb-0"><?php echo $avgattendance; ?>%</h3>
+                        <small class="text-muted"><?php echo get_string('attendance', 'local_academic_dashboard'); ?></small>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fa fa-book fa-2x"></i>
-                    <h4><?php echo $totalcourses; ?></h4>
-                    <small><?php echo get_string('courses'); ?></small>
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fa fa-book fa-3x text-primary mr-3"></i>
+                    <div>
+                        <h3 class="mb-0"><?php echo $totalcourses; ?></h3>
+                        <small class="text-muted"><?php echo get_string('courses'); ?></small>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fa fa-exclamation-triangle fa-2x text-danger"></i>
-                    <h4><?php echo $totaloverdue; ?></h4>
-                    <small><?php echo get_string('overdue_tasks', 'local_academic_dashboard'); ?></small>
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fa fa-exclamation-triangle fa-3x text-danger mr-3"></i>
+                    <div>
+                        <h3 class="mb-0"><?php echo $totaloverdue; ?></h3>
+                        <small class="text-muted"><?php echo get_string('overdue_tasks', 'local_academic_dashboard'); ?></small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -118,12 +128,15 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($courses as $course): 
+                    <?php 
+                    $courseIndex = 0;
+                    foreach ($courses as $course): 
                         $progress = local_academic_dashboard_get_student_progress($userid, $course->id);
                         $attendance = local_academic_dashboard_get_student_attendance($userid, $course->id);
                         $groups = groups_get_all_groups($course->id);
                         $usergroups = groups_get_user_groups($course->id, $userid);
                         $currentgroupid = !empty($usergroups[0]) ? $usergroups[0][0] : 0;
+                        $courseIndex++;
                     ?>
                     <tr>
                         <td>
@@ -133,10 +146,10 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
                         </td>
                         <td>
                             <?php if ($progress !== null): ?>
-                            <div class="progress" style="width: 150px;">
-                                <div class="progress-bar" role="progressbar" style="width: <?php echo $progress; ?>%">
-                                    <?php echo round($progress); ?>%
-                                </div>
+                            <!-- Replace progress bar with small pie chart -->
+                            <div class="d-flex align-items-center">
+                                <canvas id="courseProgress<?php echo $courseIndex; ?>" width="40" height="40" class="mr-2"></canvas>
+                                <span><?php echo round($progress); ?>%</span>
                             </div>
                             <?php else: ?>
                             -
@@ -144,10 +157,10 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
                         </td>
                         <td>
                             <?php if ($attendance !== null): ?>
-                            <div class="progress" style="width: 150px;">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $attendance; ?>%">
-                                    <?php echo $attendance; ?>%
-                                </div>
+                            <!-- Replace progress bar with small pie chart -->
+                            <div class="d-flex align-items-center">
+                                <canvas id="courseAttendance<?php echo $courseIndex; ?>" width="40" height="40" class="mr-2"></canvas>
+                                <span><?php echo $attendance; ?>%</span>
                             </div>
                             <?php else: ?>
                             -
@@ -189,17 +202,15 @@ new Chart(progressCtx, {
         labels: ['<?php echo get_string('completed', 'local_academic_dashboard'); ?>', '<?php echo get_string('remaining', 'local_academic_dashboard'); ?>'],
         datasets: [{
             data: [<?php echo $avgprogress; ?>, <?php echo 100 - $avgprogress; ?>],
-            backgroundColor: ['#28a745', '#e9ecef'],
+            backgroundColor: ['#28a745', '#dee2e6'],
             borderWidth: 0
         }]
     },
     options: {
-        responsive: true,
+        responsive: false,
         maintainAspectRatio: true,
         plugins: {
-            legend: {
-                display: false
-            },
+            legend: { display: false },
             tooltip: {
                 callbacks: {
                     label: function(context) {
@@ -208,7 +219,7 @@ new Chart(progressCtx, {
                 }
             }
         },
-        cutout: '70%'
+        cutout: '65%'
     }
 });
 
@@ -219,17 +230,15 @@ new Chart(attendanceCtx, {
         labels: ['<?php echo get_string('present', 'local_academic_dashboard'); ?>', '<?php echo get_string('absent', 'local_academic_dashboard'); ?>'],
         datasets: [{
             data: [<?php echo $avgattendance; ?>, <?php echo 100 - $avgattendance; ?>],
-            backgroundColor: ['#007bff', '#e9ecef'],
+            backgroundColor: ['#0f6cbf', '#dee2e6'],
             borderWidth: 0
         }]
     },
     options: {
-        responsive: true,
+        responsive: false,
         maintainAspectRatio: true,
         plugins: {
-            legend: {
-                display: false
-            },
+            legend: { display: false },
             tooltip: {
                 callbacks: {
                     label: function(context) {
@@ -238,9 +247,66 @@ new Chart(attendanceCtx, {
                 }
             }
         },
-        cutout: '70%'
+        cutout: '65%'
     }
 });
+
+<?php 
+$courseIndex = 0;
+foreach ($courses as $course):
+    $progress = local_academic_dashboard_get_student_progress($userid, $course->id);
+    $attendance = local_academic_dashboard_get_student_attendance($userid, $course->id);
+    $courseIndex++;
+    
+    if ($progress !== null):
+?>
+const courseProgressCtx<?php echo $courseIndex; ?> = document.getElementById('courseProgress<?php echo $courseIndex; ?>').getContext('2d');
+new Chart(courseProgressCtx<?php echo $courseIndex; ?>, {
+    type: 'doughnut',
+    data: {
+        datasets: [{
+            data: [<?php echo round($progress); ?>, <?php echo 100 - round($progress); ?>],
+            backgroundColor: ['#28a745', '#dee2e6'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+        },
+        cutout: '60%'
+    }
+});
+<?php 
+    endif;
+    
+    if ($attendance !== null):
+?>
+const courseAttendanceCtx<?php echo $courseIndex; ?> = document.getElementById('courseAttendance<?php echo $courseIndex; ?>').getContext('2d');
+new Chart(courseAttendanceCtx<?php echo $courseIndex; ?>, {
+    type: 'doughnut',
+    data: {
+        datasets: [{
+            data: [<?php echo $attendance; ?>, <?php echo 100 - $attendance; ?>],
+            backgroundColor: ['#0f6cbf', '#dee2e6'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+        },
+        cutout: '60%'
+    }
+});
+<?php 
+    endif;
+endforeach; 
+?>
 
 const groupChanges = [];
 
@@ -249,13 +315,11 @@ document.querySelectorAll('.group-selector').forEach(select => {
         const courseid = this.dataset.courseid;
         const groupid = this.value;
         
-        // Remove existing change for this course
         const index = groupChanges.findIndex(c => c.courseid === courseid);
         if (index > -1) {
             groupChanges.splice(index, 1);
         }
         
-        // Add new change
         groupChanges.push({courseid: courseid, groupid: groupid});
         
         document.getElementById('saveBtn').disabled = false;

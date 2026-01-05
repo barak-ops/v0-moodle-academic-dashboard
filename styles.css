@@ -1,0 +1,59 @@
+/* Add Moodle-style design for academic dashboard */
+
+.academic-dashboard .card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.academic-dashboard .card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.academic-dashboard .card-body {
+  padding: 1rem;
+}
+
+.academic-dashboard .nav-tabs .nav-link {
+  color: #495057;
+  border: 1px solid transparent;
+}
+
+.academic-dashboard .nav-tabs .nav-link.active {
+  color: #0f6cbf;
+  background-color: #fff;
+  border-color: #dee2e6 #dee2e6 #fff;
+}
+
+.academic-dashboard .table {
+  background-color: #fff;
+}
+
+.academic-dashboard .table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.student-details .card {
+  margin-bottom: 1rem;
+}
+
+.course-details .card {
+  margin-bottom: 0.5rem;
+}
+
+.student-card {
+  cursor: move;
+  transition: transform 0.2s ease;
+}
+
+.student-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure pie charts don't stretch */
+canvas {
+  max-width: 100%;
+  height: auto !important;
+}
