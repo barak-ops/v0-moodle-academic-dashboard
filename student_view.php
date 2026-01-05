@@ -331,6 +331,7 @@ document.getElementById('groupForm').addEventListener('submit', function(e) {
 });
 
 function openEmailModal(email) {
-    alert('Send email to: ' + email);
+    const url = '<?php echo new moodle_url('/local/academic_dashboard/mail_compose.php'); ?>?to=' + encodeURIComponent(email) + '&courseid=<?php echo $fromcourse ? $fromcourse : 0; ?>';
+    window.open(url, 'EmailComposer', 'width=900,height=700,scrollbars=yes,resizable=yes');
 }
 </script>

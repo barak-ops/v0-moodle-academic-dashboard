@@ -287,11 +287,13 @@ document.getElementById('groupForm').addEventListener('submit', function(e) {
 });
 
 function openEmailModal(email) {
-    alert('Send email to: ' + email);
+    const url = '<?php echo new moodle_url('/local/academic_dashboard/mail_compose.php'); ?>?to=' + encodeURIComponent(email) + '&courseid=<?php echo $courseid; ?>';
+    window.open(url, 'EmailComposer', 'width=900,height=700,scrollbars=yes,resizable=yes');
 }
 
 function openCourseEmail(courseid) {
-    alert('Send email to all course participants');
+    const url = '<?php echo new moodle_url('/local/academic_dashboard/mail_compose.php'); ?>?courseid=' + courseid;
+    window.open(url, 'EmailComposer', 'width=900,height=700,scrollbars=yes,resizable=yes');
 }
 </script>
 

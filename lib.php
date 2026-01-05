@@ -190,3 +190,14 @@ function local_academic_dashboard_render_email_modal($recipients = [], $courseid
     
     return $html;
 }
+
+/**
+ * Open email composer window
+ */
+function local_academic_dashboard_open_email_composer($to = '', $courseid = 0) {
+    $url = new moodle_url('/local/academic_dashboard/mail_compose.php', [
+        'to' => $to,
+        'courseid' => $courseid
+    ]);
+    return $url->out();
+}
