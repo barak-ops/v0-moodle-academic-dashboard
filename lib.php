@@ -2,6 +2,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/lib/completionlib.php');
+require_once($CFG->libdir . '/accesslib.php');
 
 /**
  * Get course statistics
