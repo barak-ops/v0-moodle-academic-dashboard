@@ -34,3 +34,6 @@ $string['group_members'] = 'חברי קבוצה';
 $string['total_courses'] = 'כמות קורסים';
 $string['overdue_tasks'] = 'משימות שעברו';
 $string['group'] = 'קבוצה';
+$string['completed'] = 'הושלם';
+$string['present'] = 'נוכח';
+$string['absent'] = 'נעדר';

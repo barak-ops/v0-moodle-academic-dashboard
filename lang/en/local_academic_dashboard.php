@@ -34,3 +34,6 @@ $string['group_members'] = 'Group Members';
 $string['total_courses'] = 'Total Courses';
 $string['overdue_tasks'] = 'Overdue Tasks';
 $string['group'] = 'Group';
+$string['completed'] = 'Completed';
+$string['present'] = 'Present';
+$string['absent'] = 'Absent';

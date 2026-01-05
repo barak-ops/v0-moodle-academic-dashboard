@@ -59,29 +59,25 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
         </a>
     </p>
     
-    <!-- Statistics -->
+    <!-- Statistics with Pie Charts -->
     <div class="row mb-4">
+        <!-- Replaced progress bar with pie chart -->
         <div class="col-md-3">
             <div class="card text-center">
                 <div class="card-body">
                     <h5><?php echo get_string('progress', 'local_academic_dashboard'); ?></h5>
-                    <div class="progress" style="height: 50px;">
-                        <div class="progress-bar" role="progressbar" style="width: <?php echo $avgprogress; ?>%; font-size: 1.2em; line-height: 50px;">
-                            <?php echo $avgprogress; ?>%
-                        </div>
-                    </div>
+                    <canvas id="progressChart" width="150" height="150"></canvas>
+                    <h4 class="mt-2"><?php echo $avgprogress; ?>%</h4>
                 </div>
             </div>
         </div>
+        <!-- Replaced progress bar with pie chart -->
         <div class="col-md-3">
             <div class="card text-center">
                 <div class="card-body">
                     <h5><?php echo get_string('attendance', 'local_academic_dashboard'); ?></h5>
-                    <div class="progress" style="height: 50px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $avgattendance; ?>%; font-size: 1.2em; line-height: 50px;">
-                            <?php echo $avgattendance; ?>%
-                        </div>
-                    </div>
+                    <canvas id="attendanceChart" width="150" height="150"></canvas>
+                    <h4 class="mt-2"><?php echo $avgattendance; ?>%</h4>
                 </div>
             </div>
         </div>
@@ -183,7 +179,69 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
     </form>
 </div>
 
+<!-- Added Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
+const progressCtx = document.getElementById('progressChart').getContext('2d');
+new Chart(progressCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['<?php echo get_string('completed', 'local_academic_dashboard'); ?>', '<?php echo get_string('remaining', 'local_academic_dashboard'); ?>'],
+        datasets: [{
+            data: [<?php echo $avgprogress; ?>, <?php echo 100 - $avgprogress; ?>],
+            backgroundColor: ['#28a745', '#e9ecef'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' + context.parsed + '%';
+                    }
+                }
+            }
+        },
+        cutout: '70%'
+    }
+});
+
+const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+new Chart(attendanceCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['<?php echo get_string('present', 'local_academic_dashboard'); ?>', '<?php echo get_string('absent', 'local_academic_dashboard'); ?>'],
+        datasets: [{
+            data: [<?php echo $avgattendance; ?>, <?php echo 100 - $avgattendance; ?>],
+            backgroundColor: ['#007bff', '#e9ecef'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' + context.parsed + '%';
+                    }
+                }
+            }
+        },
+        cutout: '70%'
+    }
+});
+
 const groupChanges = [];
 
 document.querySelectorAll('.group-selector').forEach(select => {
