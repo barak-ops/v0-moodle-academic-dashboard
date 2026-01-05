@@ -144,7 +144,15 @@ echo $OUTPUT->header();
         
         <?php
         $groups = groups_get_all_groups($courseid);
-        $students = get_enrolled_users($context, 'mod/assignment:submit', 0, 'u.*', 'u.lastname, u.firstname');
+        
+        $sql = "SELECT DISTINCT u.*
+                FROM {user} u
+                JOIN {user_enrolments} ue ON ue.userid = u.id
+                JOIN {enrol} e ON e.id = ue.enrolid
+                WHERE e.courseid = ? AND u.deleted = 0 AND ue.status = 0
+                ORDER BY u.lastname, u.firstname";
+        
+        $students = $DB->get_records_sql($sql, [$courseid]);
         
         if (count($groups) > 0) {
             // Group students by group

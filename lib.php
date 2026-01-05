@@ -12,10 +12,14 @@ function local_academic_dashboard_get_course_stats($courseid) {
     
     $stats = new stdClass();
     
-    // Count students
-    $context = context_course::instance($courseid);
-    $students = get_enrolled_users($context, 'mod/assignment:submit', 0, 'u.id', null, 0, 0, true);
-    $stats->students = count($students);
+    $sql = "SELECT COUNT(DISTINCT ue.userid) as total
+            FROM {user_enrolments} ue
+            JOIN {enrol} e ON e.id = ue.enrolid
+            JOIN {user} u ON u.id = ue.userid
+            WHERE e.courseid = ? AND u.deleted = 0 AND ue.status = 0";
+    
+    $result = $DB->get_record_sql($sql, [$courseid]);
+    $stats->students = $result ? $result->total : 0;
     
     // Count resources
     $stats->resources = $DB->count_records('resource', ['course' => $courseid]);
