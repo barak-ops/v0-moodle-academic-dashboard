@@ -92,3 +92,13 @@ div#region-main-box {
 div#page-content {
   background: #f7f7f7;
 }
+
+/* Added cards-container background and card-body padding styles */
+#cards-container {
+  background: #f7f7f7;
+  padding: 10px;
+}
+
+.card-body {
+  padding: 0 1.25rem !important;
+}

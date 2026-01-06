@@ -47,20 +47,20 @@ echo $OUTPUT->header();
 
 ?>
 
-<div style="background-color: #f7f7f7; padding: 10px;">
-    <div class="course-details">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="d-flex align-items-center">
-                <?php echo format_string($course->fullname); ?>
-                <a href="#" class="ml-2" onclick="openCourseEmail(<?php echo $courseid; ?>); return false;" style="font-size: 0.6em; text-decoration: none;">
-                    <i class="fa fa-envelope"></i>
-                </a>
-            </h2>
-            <a href="<?php echo $fromuser ? 'user.php?id=' . $fromuser : 'index.php'; ?>" style="font-size: 1.5em; text-decoration: none; color: #333;">
-                <i class="fa fa-arrow-left"></i>
+<div class="course-details">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="d-flex align-items-center">
+            <?php echo format_string($course->fullname); ?>
+            <a href="#" class="ml-2" onclick="openCourseEmail(<?php echo $courseid; ?>); return false;" style="font-size: 0.6em; text-decoration: none;">
+                <i class="fa fa-envelope"></i>
             </a>
-        </div>
-        
+        </h2>
+        <a href="<?php echo $fromuser ? 'user.php?id=' . $fromuser : 'index.php'; ?>" style="font-size: 1.5em; text-decoration: none; color: #333;">
+            <i class="fa fa-arrow-left"></i>
+        </a>
+    </div>
+    
+    <div id="cards-container">
         <div class="row mb-4">
             <div class="col-md-2">
                 <div class="card" style="border-radius: 7px;">
