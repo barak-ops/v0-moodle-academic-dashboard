@@ -51,3 +51,4 @@ $string['select_user'] = 'Select a user...';
 $string['email_no_recipients'] = 'Please add at least one recipient';
 $string['email_sent_success'] = 'Email sent successfully';
 $string['email_sent_error'] = 'Error sending email. Please try again.';
+$string['type_to_search'] = 'Type to search users...'; // Added autocomplete placeholder text

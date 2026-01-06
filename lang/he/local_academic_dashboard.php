@@ -51,3 +51,6 @@ $string['select_user'] = 'בחר משתמש...';
 $string['email_no_recipients'] = 'אנא הוסף לפחות נמען אחד';
 $string['email_sent_success'] = 'המייל נשלח בהצלחה';
 $string['email_sent_error'] = 'שגיאה בשליחת המייל. אנא נסה שוב.';
+$string['type_to_search'] = 'הקלד לחיפוש משתמשים...';
+
+// ... rest of code here ...

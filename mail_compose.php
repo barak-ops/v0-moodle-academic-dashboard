@@ -206,6 +206,47 @@ if ($userid > 0) {
     background: #f8f9fa;
     border-radius: 4px;
 }
+
+.recipient-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.recipient-input {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+.autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.autocomplete-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.autocomplete-item:hover {
+    background: #f8f9fa;
+}
+
+.autocomplete-item.selected {
+    background: #e9ecef;
+}
 </style>
 
 <div class="email-composer">
@@ -237,12 +278,26 @@ if ($userid > 0) {
         
         <div class="form-group">
             <label><?php echo get_string('email_to', 'local_academic_dashboard'); ?></label>
-            <div class="recipient-tags" id="toRecipients"></div>
+            <div class="recipient-tags" id="toRecipients">
+                <!-- Added input field for autocomplete -->
+                <div class="recipient-input-wrapper">
+                    <input type="text" class="recipient-input" id="toInput" 
+                           placeholder="<?php echo get_string('type_to_search', 'local_academic_dashboard'); ?>">
+                    <div class="autocomplete-dropdown" id="toDropdown"></div>
+                </div>
+            </div>
         </div>
         
         <div class="form-group">
             <label><?php echo get_string('email_cc', 'local_academic_dashboard'); ?></label>
-            <div class="recipient-tags" id="ccRecipients"></div>
+            <div class="recipient-tags" id="ccRecipients">
+                <!-- Added input field for autocomplete -->
+                <div class="recipient-input-wrapper">
+                    <input type="text" class="recipient-input" id="ccInput" 
+                           placeholder="<?php echo get_string('type_to_search', 'local_academic_dashboard'); ?>">
+                    <div class="autocomplete-dropdown" id="ccDropdown"></div>
+                </div>
+            </div>
             
             <?php if ($courseid && $course): ?>
             <div class="cc-options">
@@ -326,52 +381,93 @@ const groups = <?php echo json_encode(array_map(function($g) use ($courseid, $co
 }, array_values($groups))); ?>;
 <?php endif; ?>
 
+const autocompleteState = {
+    toIndex: -1,
+    ccIndex: -1
+};
+
 window.addEventListener('DOMContentLoaded', function() {
+    window.recipientNames = {};
+    
     defaultRecipients.forEach(recipient => {
-        addRecipient('to', recipient.email, recipient.name);
+        window.recipientNames[recipient.email] = recipient.name;
+        toRecipients.add(recipient.email);
     });
     
     <?php if ($to): ?>
-    addRecipient('to', '<?php echo addslashes($to); ?>', '<?php echo addslashes($to); ?>');
+    toRecipients.add('<?php echo addslashes($to); ?>');
+    window.recipientNames['<?php echo addslashes($to); ?>'] = '<?php echo addslashes($to); ?>';
     <?php endif; ?>
+    
+    // Render recipients
+    renderRecipients('to');
+    renderRecipients('cc');
+    
+    // Initialize autocomplete
+    initAutocomplete('toInput', 'toDropdown', 'to');
+    initAutocomplete('ccInput', 'ccDropdown', 'cc');
+    
+    updateHiddenInputs();
 });
 
 function addRecipient(type, email, name) {
     const set = type === 'to' ? toRecipients : ccRecipients;
-    const container = document.getElementById(type === 'to' ? 'toRecipients' : 'ccRecipients');
     
     if (!email || set.has(email)) return;
     
     set.add(email);
     
-    const tag = document.createElement('div');
-    tag.className = 'recipient-tag';
-    tag.innerHTML = `
-        <span>${name || email}</span>
-        <span class="remove" onclick="removeRecipient('${type}', '${email}')">&times;</span>
-    `;
-    container.appendChild(tag);
+    // Store name mapping
+    if (!window.recipientNames) {
+        window.recipientNames = {};
+    }
+    window.recipientNames[email] = name;
     
+    renderRecipients(type);
     updateHiddenInputs();
 }
 
-function removeRecipient(type, email) {
+function renderRecipients(type) {
     const set = type === 'to' ? toRecipients : ccRecipients;
     const container = document.getElementById(type === 'to' ? 'toRecipients' : 'ccRecipients');
+    const inputId = type === 'to' ? 'toInput' : 'ccInput';
+    const dropdownId = type === 'to' ? 'toDropdown' : 'ccDropdown';
     
-    set.delete(email);
     container.innerHTML = '';
     
-    set.forEach(e => {
+    // Add recipient tags
+    set.forEach(email => {
         const tag = document.createElement('div');
         tag.className = 'recipient-tag';
+        const displayName = window.recipientNames && window.recipientNames[email] ? window.recipientNames[email] : email;
         tag.innerHTML = `
-            <span>${e}</span>
-            <span class="remove" onclick="removeRecipient('${type}', '${e}')">&times;</span>
+            <span>${displayName}</span>
+            <span class="remove" onclick="removeRecipient('${type}', '${email.replace(/'/g, "\\'")}')">&times;</span>
         `;
         container.appendChild(tag);
     });
     
+    // Re-add input field
+    const inputWrapper = document.createElement('div');
+    inputWrapper.className = 'recipient-input-wrapper';
+    inputWrapper.innerHTML = `
+        <input type="text" class="recipient-input" id="${inputId}" 
+               placeholder="<?php echo get_string('type_to_search', 'local_academic_dashboard'); ?>">
+        <div class="autocomplete-dropdown" id="${dropdownId}"></div>
+    `;
+    container.appendChild(inputWrapper);
+    
+    // Re-initialize autocomplete for the new input
+    setTimeout(() => {
+        initAutocomplete(inputId, dropdownId, type);
+    }, 0);
+}
+
+function removeRecipient(type, email) {
+    const set = type === 'to' ? toRecipients : ccRecipients;
+    set.delete(email);
+    
+    renderRecipients(type);
     updateHiddenInputs();
 }
 
@@ -408,6 +504,123 @@ function addSpecificUser() {
 }
 <?php endif; ?>
 
+function initAutocomplete(inputId, dropdownId, recipientType) {
+    const input = document.getElementById(inputId);
+    const dropdown = document.getElementById(dropdownId);
+    
+    input.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        
+        if (query.length === 0) {
+            dropdown.style.display = 'none';
+            return;
+        }
+        
+        // Filter users based on context
+        const filteredUsers = filterUsersByContext(query);
+        
+        if (filteredUsers.length === 0) {
+            dropdown.style.display = 'none';
+            return;
+        }
+        
+        // Display filtered users
+        dropdown.innerHTML = '';
+        filteredUsers.forEach((user, index) => {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.innerHTML = `<strong>${user.name}</strong><br><small>${user.email}</small>`;
+            item.dataset.email = user.email;
+            item.dataset.name = user.name;
+            item.dataset.index = index;
+            
+            item.addEventListener('click', function() {
+                addRecipientFromAutocomplete(recipientType, user.email, user.name);
+                input.value = '';
+                dropdown.style.display = 'none';
+            });
+            
+            dropdown.appendChild(item);
+        });
+        
+        dropdown.style.display = 'block';
+        autocompleteState[recipientType + 'Index'] = -1;
+    });
+    
+    // Keyboard navigation
+    input.addEventListener('keydown', function(e) {
+        const items = dropdown.querySelectorAll('.autocomplete-item');
+        const currentIndex = autocompleteState[recipientType + 'Index'];
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (currentIndex < items.length - 1) {
+                const newIndex = currentIndex + 1;
+                updateSelectedItem(items, newIndex, recipientType);
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (currentIndex > 0) {
+                const newIndex = currentIndex - 1;
+                updateSelectedItem(items, newIndex, recipientType);
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (currentIndex >= 0 && currentIndex < items.length) {
+                const item = items[currentIndex];
+                addRecipientFromAutocomplete(recipientType, item.dataset.email, item.dataset.name);
+                input.value = '';
+                dropdown.style.display = 'none';
+            }
+        } else if (e.key === 'Escape') {
+            dropdown.style.display = 'none';
+            autocompleteState[recipientType + 'Index'] = -1;
+        }
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+}
+
+function updateSelectedItem(items, newIndex, recipientType) {
+    items.forEach(item => item.classList.remove('selected'));
+    if (newIndex >= 0 && newIndex < items.length) {
+        items[newIndex].classList.add('selected');
+        items[newIndex].scrollIntoView({ block: 'nearest' });
+    }
+    autocompleteState[recipientType + 'Index'] = newIndex;
+}
+
+function filterUsersByContext(query) {
+    let availableUsers = [];
+    
+    <?php if ($courseid && $course): ?>
+    // Filter from course users
+    availableUsers = courseUsers.filter(user => {
+        const nameMatch = user.name.toLowerCase().includes(query);
+        const emailMatch = user.email.toLowerCase().includes(query);
+        const notAlreadyAdded = !toRecipients.has(user.email) && !ccRecipients.has(user.email);
+        return (nameMatch || emailMatch) && notAlreadyAdded;
+    });
+    <?php else: ?>
+    // No context - return empty (can be extended for global search)
+    availableUsers = [];
+    <?php endif; ?>
+    
+    return availableUsers;
+}
+
+function addRecipientFromAutocomplete(type, email, name) {
+    addRecipient(type, email, name);
+    
+    // Re-render recipients to include input field
+    renderRecipients(type);
+}
+
 document.getElementById('emailForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -440,3 +653,4 @@ document.getElementById('emailForm').addEventListener('submit', function(e) {
 
 <?php
 echo $OUTPUT->footer();
+?>
