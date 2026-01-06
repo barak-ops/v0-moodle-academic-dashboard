@@ -47,7 +47,7 @@ echo $OUTPUT->header();
 
 ?>
 
-<div style="background-color: #f8f9fa; padding: 10px;">
+<div style="background-color: #f7f7f7; padding: 10px;">
     <div class="course-details">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="d-flex align-items-center">
@@ -243,23 +243,25 @@ echo $OUTPUT->header();
                     echo '<div class="flex-grow-1">';
                     echo '<a href="user.php?id=' . $student->id . '&fromcourse=' . $courseid . '">' . fullname($student) . '</a>';
                     echo '</div>';
-                    echo '<a href="#" class="mr-3" onclick="openEmailModal(\'' . $student->email . '\'); return false;">' . $student->email . '</a>';
+                    echo '<a href="#" class="mr-3" onclick="openEmailModal(\'' . $student->email . '\'); return false;" title="' . $student->email . '">';
+                    echo '<i class="fa fa-envelope"></i>';
+                    echo '</a>';
                     
                     if ($progress !== null) {
-                        echo '<div class="mr-3">';
-                        echo '<small>' . get_string('progress', 'local_academic_dashboard') . ': ' . round($progress) . '%</small>';
-                        echo '<div class="progress" style="width: 100px;">';
+                        echo '<div class="mr-3 d-flex align-items-center">';
+                        echo '<div class="progress mr-2" style="width: 100px; height: 20px;">';
                         echo '<div class="progress-bar" role="progressbar" style="width: ' . $progress . '%"></div>';
                         echo '</div>';
+                        echo '<small style="white-space: nowrap;">' . get_string('progress', 'local_academic_dashboard') . ': ' . round($progress) . '%</small>';
                         echo '</div>';
                     }
                     
                     if ($attendance !== null) {
-                        echo '<div>';
-                        echo '<small>' . get_string('attendance', 'local_academic_dashboard') . ': ' . $attendance . '%</small>';
-                        echo '<div class="progress" style="width: 100px;">';
+                        echo '<div class="d-flex align-items-center">';
+                        echo '<div class="progress mr-2" style="width: 100px; height: 20px;">';
                         echo '<div class="progress-bar bg-success" role="progressbar" style="width: ' . $attendance . '%"></div>';
                         echo '</div>';
+                        echo '<small style="white-space: nowrap;">' . get_string('attendance', 'local_academic_dashboard') . ': ' . $attendance . '%</small>';
                         echo '</div>';
                     }
                     
@@ -267,7 +269,7 @@ echo $OUTPUT->header();
                 }
                 ?>
                 
-                <div class="card-body">
+                <div class="card-body" style="background: #f7f7f7;">
                     <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
                         <?php echo get_string('save', 'local_academic_dashboard'); ?>
                     </button>
