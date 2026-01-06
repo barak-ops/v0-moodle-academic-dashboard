@@ -306,8 +306,15 @@ document.querySelectorAll('.student-card').forEach(card => {
             
             const userid = draggedElement.dataset.userid;
             const groupid = targetGroup.dataset.groupid;
+            
+            const existingIndex = changes.findIndex(c => c.userid === userid);
+            if (existingIndex > -1) {
+                changes.splice(existingIndex, 1);
+            }
+            
             changes.push({userid: userid, groupid: groupid});
             
+            // Enable save button
             document.getElementById('saveBtn').disabled = false;
         }
         return false;

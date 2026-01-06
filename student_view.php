@@ -175,6 +175,12 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
 <script>
 const groupChanges = [];
 
+const originalGroups = {};
+document.querySelectorAll('.group-selector').forEach(select => {
+    const courseid = select.dataset.courseid;
+    originalGroups[courseid] = select.value;
+});
+
 document.querySelectorAll('.group-selector').forEach(select => {
     select.addEventListener('change', function() {
         const courseid = this.dataset.courseid;
@@ -185,9 +191,12 @@ document.querySelectorAll('.group-selector').forEach(select => {
             groupChanges.splice(index, 1);
         }
         
-        groupChanges.push({courseid: courseid, groupid: groupid});
+        // Only add to changes if different from original
+        if (groupid !== originalGroups[courseid]) {
+            groupChanges.push({courseid: courseid, groupid: groupid});
+        }
         
-        document.getElementById('saveBtn').disabled = false;
+        document.getElementById('saveBtn').disabled = groupChanges.length === 0;
     });
 });
 
