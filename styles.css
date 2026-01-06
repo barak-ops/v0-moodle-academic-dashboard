@@ -80,18 +80,6 @@ canvas {
   text-decoration: underline;
 }
 
-/* Added Moodle dashboard-style background colors */
-.card.card-block {
-  background: #f7f7f7;
-}
-
-div#region-main-box {
-  background: #f7f7f7;
-}
-
-div#page-content {
-  background: #f7f7f7;
-}
 
 /* Added cards-container background and card-body padding styles */
 #cards-container {
@@ -102,7 +90,7 @@ div#page-content {
 .icon-card-body {
     flex: 1 1 auto;
     min-height: 1px;
-    padding: 1.25rem !important;
+    padding: 1.25rem;
 }
 .card-body {
   padding: 0 1.25rem !important;

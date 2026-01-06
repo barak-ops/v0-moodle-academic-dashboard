@@ -129,155 +129,155 @@ echo $OUTPUT->header();
                 </div>
             </div>
         </div>
-        
-        <div class="card" style="border-radius: 7px;">
-            <div class="card-header">
-                <h4 class="mb-0"><?php echo get_string('teacher', 'local_academic_dashboard'); ?></h4>
-            </div>
-            <hr class="m-0">
-            <?php
-            $teachers = get_enrolled_users($context, 'moodle/course:update');
-            $teacherCount = count($teachers);
-            $teacherIndex = 0;
-            foreach ($teachers as $teacher):
-                $teacherIndex++;
-                $isLast = ($teacherIndex === $teacherCount);
-            ?>
-            <div class="card-body d-flex justify-content-between align-items-center" style="border-radius: 0; <?php echo $isLast ? '' : 'border-bottom: 1px solid #dee2e6;'; ?>">
-                <a href="user.php?id=<?php echo $teacher->id; ?>&fromcourse=<?php echo $courseid; ?>">
-                    <?php echo fullname($teacher); ?>
-                </a>
-                <a href="#" onclick="openEmailModal('<?php echo $teacher->email; ?>'); return false;">
-                    <?php echo $teacher->email; ?>
-                </a>
-            </div>
-            <?php endforeach; ?>
+    </div>
+    <div class="card">
+        <div class="card-header" style="padding: 15px">
+            <h4 class="mb-0"><?php echo get_string('teacher', 'local_academic_dashboard'); ?></h4>
         </div>
-        
-        <div class="card mt-3" style="border-radius: 7px;">
-            <div class="card-header">
-                <h4 class="mb-0"><?php echo get_string('students', 'local_academic_dashboard'); ?></h4>
-            </div>
-            <hr class="m-0">
-            <form method="post" id="groupForm">
-                <input type="hidden" name="sesskey" value="<?php echo sesskey(); ?>">
-                <input type="hidden" name="groupdata" id="groupData">
+        <hr class="m-0">
+        <?php
+        $teachers = get_enrolled_users($context, 'moodle/course:update');
+        $teacherCount = count($teachers);
+        $teacherIndex = 0;
+        foreach ($teachers as $teacher):
+            $teacherIndex++;
+            $isLast = ($teacherIndex === $teacherCount);
+        ?>
+        <div class="card-body d-flex justify-content-between align-items-center" style="border-radius: 0; <?php echo $isLast ? '' : 'border-bottom: 1px solid #dee2e6;'; ?>">
+            <a href="user.php?id=<?php echo $teacher->id; ?>&fromcourse=<?php echo $courseid; ?>">
+                <?php echo fullname($teacher); ?>
+            </a>
+            <a href="#" onclick="openEmailModal('<?php echo $teacher->email; ?>'); return false;">
+                <?php echo $teacher->email; ?>
+            </a>
+        </div>
+        <?php endforeach; ?>
+    </div>
+    
+    <div class="card mt-3" style="border-radius: 7px;">
+        <div class="card-header">
+            <h4 class="mb-0"><?php echo get_string('students', 'local_academic_dashboard'); ?></h4>
+        </div>
+        <hr class="m-0">
+        <form method="post" id="groupForm">
+            <input type="hidden" name="sesskey" value="<?php echo sesskey(); ?>">
+            <input type="hidden" name="groupdata" id="groupData">
+            
+            <?php
+            $groups = groups_get_all_groups($courseid);
+            
+            $sql = "SELECT DISTINCT u.*
+                    FROM {user} u
+                    JOIN {user_enrolments} ue ON ue.userid = u.id
+                    JOIN {enrol} e ON e.id = ue.enrolid
+                    WHERE e.courseid = ? AND u.deleted = 0 AND ue.status = 0
+                    ORDER BY u.lastname, u.firstname";
+            
+            $students = $DB->get_records_sql($sql, [$courseid]);
+            
+            if (count($groups) > 0) {
+                $groupedstudents = [];
+                $nogroupstudents = [];
                 
-                <?php
-                $groups = groups_get_all_groups($courseid);
-                
-                $sql = "SELECT DISTINCT u.*
-                        FROM {user} u
-                        JOIN {user_enrolments} ue ON ue.userid = u.id
-                        JOIN {enrol} e ON e.id = ue.enrolid
-                        WHERE e.courseid = ? AND u.deleted = 0 AND ue.status = 0
-                        ORDER BY u.lastname, u.firstname";
-                
-                $students = $DB->get_records_sql($sql, [$courseid]);
-                
-                if (count($groups) > 0) {
-                    $groupedstudents = [];
-                    $nogroupstudents = [];
-                    
-                    foreach ($students as $student) {
-                        $usergroups = groups_get_user_groups($courseid, $student->id);
-                        if (empty($usergroups[0])) {
-                            $nogroupstudents[] = $student;
-                        } else {
-                            foreach ($usergroups[0] as $gid) {
-                                if (!isset($groupedstudents[$gid])) {
-                                    $groupedstudents[$gid] = [];
-                                }
-                                $groupedstudents[$gid][] = $student;
+                foreach ($students as $student) {
+                    $usergroups = groups_get_user_groups($courseid, $student->id);
+                    if (empty($usergroups[0])) {
+                        $nogroupstudents[] = $student;
+                    } else {
+                        foreach ($usergroups[0] as $gid) {
+                            if (!isset($groupedstudents[$gid])) {
+                                $groupedstudents[$gid] = [];
                             }
+                            $groupedstudents[$gid][] = $student;
                         }
                     }
-                    
-                    foreach ($groups as $group) {
-                        echo '<div class="card-header bg-light"><h5 class="mb-0">' . format_string($group->name) . '</h5></div>';
-                        echo '<hr class="m-0">';
-                        echo '<div class="student-group" data-groupid="' . $group->id . '">';
-                        if (isset($groupedstudents[$group->id])) {
-                            $groupStudentCount = count($groupedstudents[$group->id]);
-                            $groupStudentIndex = 0;
-                            foreach ($groupedstudents[$group->id] as $student) {
-                                $groupStudentIndex++;
-                                $isLastInGroup = ($groupStudentIndex === $groupStudentCount);
-                                display_student_row($student, $courseid, $isLastInGroup);
-                            }
-                        }
-                        echo '</div>';
-                    }
-                    
-                    if (count($nogroupstudents) > 0) {
-                        echo '<div class="card-header bg-light"><h5 class="mb-0">' . get_string('no_group', 'local_academic_dashboard') . '</h5></div>';
-                        echo '<hr class="m-0">';
-                        echo '<div class="student-group" data-groupid="0">';
-                        $noGroupCount = count($nogroupstudents);
-                        $noGroupIndex = 0;
-                        foreach ($nogroupstudents as $student) {
-                            $noGroupIndex++;
-                            $isLastInGroup = ($noGroupIndex === $noGroupCount);
+                }
+                
+                foreach ($groups as $group) {
+                    echo '<div class="card-header bg-light"><h5 class="mb-0">' . format_string($group->name) . '</h5></div>';
+                    echo '<hr class="m-0">';
+                    echo '<div class="student-group" data-groupid="' . $group->id . '">';
+                    if (isset($groupedstudents[$group->id])) {
+                        $groupStudentCount = count($groupedstudents[$group->id]);
+                        $groupStudentIndex = 0;
+                        foreach ($groupedstudents[$group->id] as $student) {
+                            $groupStudentIndex++;
+                            $isLastInGroup = ($groupStudentIndex === $groupStudentCount);
                             display_student_row($student, $courseid, $isLastInGroup);
                         }
-                        echo '</div>';
                     }
-                } else {
+                    echo '</div>';
+                }
+                
+                if (count($nogroupstudents) > 0) {
+                    echo '<div class="card-header bg-light"><h5 class="mb-0">' . get_string('no_group', 'local_academic_dashboard') . '</h5></div>';
+                    echo '<hr class="m-0">';
                     echo '<div class="student-group" data-groupid="0">';
-                    $allStudentCount = count($students);
-                    $allStudentIndex = 0;
-                    foreach ($students as $student) {
-                        $allStudentIndex++;
-                        $isLastInGroup = ($allStudentIndex === $allStudentCount);
+                    $noGroupCount = count($nogroupstudents);
+                    $noGroupIndex = 0;
+                    foreach ($nogroupstudents as $student) {
+                        $noGroupIndex++;
+                        $isLastInGroup = ($noGroupIndex === $noGroupCount);
                         display_student_row($student, $courseid, $isLastInGroup);
                     }
                     echo '</div>';
                 }
+            } else {
+                echo '<div class="student-group" data-groupid="0">';
+                $allStudentCount = count($students);
+                $allStudentIndex = 0;
+                foreach ($students as $student) {
+                    $allStudentIndex++;
+                    $isLastInGroup = ($allStudentIndex === $allStudentCount);
+                    display_student_row($student, $courseid, $isLastInGroup);
+                }
+                echo '</div>';
+            }
+            
+            function display_student_row($student, $courseid, $isLast = false) {
+                $progress = local_academic_dashboard_get_student_progress($student->id, $courseid);
+                $attendance = local_academic_dashboard_get_student_attendance($student->id, $courseid);
                 
-                function display_student_row($student, $courseid, $isLast = false) {
-                    $progress = local_academic_dashboard_get_student_progress($student->id, $courseid);
-                    $attendance = local_academic_dashboard_get_student_attendance($student->id, $courseid);
-                    
-                    echo '<div class="card-body d-flex align-items-center student-card" data-userid="' . $student->id . '" draggable="true" style="border-radius: 0; ' . ($isLast ? '' : 'border-bottom: 1px solid #dee2e6;') . '">';
-                    echo '<i class="fa fa-bars mr-3" style="cursor: move;"></i>';
-                    echo '<div class="flex-grow-1">';
-                    echo '<a href="user.php?id=' . $student->id . '&fromcourse=' . $courseid . '">' . fullname($student) . '</a>';
+                echo '<div class="card-body d-flex align-items-center student-card" data-userid="' . $student->id . '" draggable="true" style="border-radius: 0; ' . ($isLast ? '' : 'border-bottom: 1px solid #dee2e6;') . '">';
+                echo '<i class="fa fa-bars mr-3" style="cursor: move;"></i>';
+                echo '<div class="flex-grow-1">';
+                echo '<a href="user.php?id=' . $student->id . '&fromcourse=' . $courseid . '">' . fullname($student) . '</a>';
+                echo '</div>';
+                echo '<a href="#" class="mr-3" onclick="openEmailModal(\'' . $student->email . '\'); return false;" title="' . $student->email . '">';
+                echo '<i class="fa fa-envelope"></i>';
+                echo '</a>';
+                
+                if ($progress !== null) {
+                    echo '<div class="mr-3 d-flex align-items-center">';
+                    echo '<div class="progress mr-2" style="width: 100px; height: 20px;">';
+                    echo '<div class="progress-bar" role="progressbar" style="width: ' . $progress . '%"></div>';
                     echo '</div>';
-                    echo '<a href="#" class="mr-3" onclick="openEmailModal(\'' . $student->email . '\'); return false;" title="' . $student->email . '">';
-                    echo '<i class="fa fa-envelope"></i>';
-                    echo '</a>';
-                    
-                    if ($progress !== null) {
-                        echo '<div class="mr-3 d-flex align-items-center">';
-                        echo '<div class="progress mr-2" style="width: 100px; height: 20px;">';
-                        echo '<div class="progress-bar" role="progressbar" style="width: ' . $progress . '%"></div>';
-                        echo '</div>';
-                        echo '<small style="white-space: nowrap;">' . get_string('progress', 'local_academic_dashboard') . ': ' . round($progress) . '%</small>';
-                        echo '</div>';
-                    }
-                    
-                    if ($attendance !== null) {
-                        echo '<div class="d-flex align-items-center">';
-                        echo '<div class="progress mr-2" style="width: 100px; height: 20px;">';
-                        echo '<div class="progress-bar bg-success" role="progressbar" style="width: ' . $attendance . '%"></div>';
-                        echo '</div>';
-                        echo '<small style="white-space: nowrap;">' . get_string('attendance', 'local_academic_dashboard') . ': ' . $attendance . '%</small>';
-                        echo '</div>';
-                    }
-                    
+                    echo '<small style="white-space: nowrap;">' . get_string('progress', 'local_academic_dashboard') . ': ' . round($progress) . '%</small>';
                     echo '</div>';
                 }
-                ?>
                 
-                <div class="card-body" style="background: #f7f7f7;">
-                    <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
-                        <?php echo get_string('save', 'local_academic_dashboard'); ?>
-                    </button>
-                </div>
-            </form>
-        </div>
+                if ($attendance !== null) {
+                    echo '<div class="d-flex align-items-center">';
+                    echo '<div class="progress mr-2" style="width: 100px; height: 20px;">';
+                    echo '<div class="progress-bar bg-success" role="progressbar" style="width: ' . $attendance . '%"></div>';
+                    echo '</div>';
+                    echo '<small style="white-space: nowrap;">' . get_string('attendance', 'local_academic_dashboard') . ': ' . $attendance . '%</small>';
+                    echo '</div>';
+                }
+                
+                echo '</div>';
+            }
+            ?>
+    
+            <div class="card-body" style="background: #f7f7f7; padding-top:15px;">
+                <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
+                    <?php echo get_string('save', 'local_academic_dashboard'); ?>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
+
 
 <script>
 let draggedElement = null;
