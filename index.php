@@ -16,8 +16,6 @@ echo $OUTPUT->header();
 ?>
 
 <div class="academic-dashboard">
-    <h2><?php echo get_string('dashboard_title', 'local_academic_dashboard'); ?></h2>
-    
     <!-- Updated tabs to match Moodle styling -->
     <ul class="nav nav-tabs mb-4" role="tablist">
         <li class="nav-item">

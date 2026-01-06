@@ -10,8 +10,8 @@ $courses = $DB->get_records_select('course', 'id > 1', null, 'fullname ASC');
 
 <div class="courses-list">
     <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
+        <table class="table table-striped courses-table">
+            <thead class="courses-table-header">
                 <tr>
                     <th><?php echo get_string('course'); ?></th>
                     <th><?php echo get_string('students', 'local_academic_dashboard'); ?></th>
@@ -26,7 +26,7 @@ $courses = $DB->get_records_select('course', 'id > 1', null, 'fullname ASC');
                 ?>
                 <tr>
                     <td>
-                        <a href="course.php?id=<?php echo $course->id; ?>">
+                        <a href="course.php?id=<?php echo $course->id; ?>" class="course-name-link">
                             <?php echo format_string($course->fullname); ?>
                         </a>
                     </td>

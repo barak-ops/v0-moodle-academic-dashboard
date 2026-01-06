@@ -57,3 +57,25 @@ canvas {
   max-width: 100%;
   height: auto !important;
 }
+
+/* Added styling for courses table with cyan header and bold course names */
+.courses-table-header {
+  background-color: #c6ffff !important;
+}
+
+.courses-table-header th {
+  color: #333;
+  font-weight: 600;
+  border-bottom: 2px solid #b0e5e5;
+}
+
+.course-name-link {
+  color: #395c6c !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.course-name-link:hover {
+  color: #2a4550 !important;
+  text-decoration: underline;
+}
