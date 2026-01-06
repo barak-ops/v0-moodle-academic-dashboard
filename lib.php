@@ -91,20 +91,56 @@ function local_academic_dashboard_get_student_attendance($userid, $courseid) {
         return null;
     }
     
-    $sql = "SELECT 
-                COUNT(CASE WHEN al.statusid IN (
-                    SELECT id FROM {attendance_statuses} WHERE attendanceid = a.id AND acronym IN ('P', 'L')
-                ) THEN 1 END) as present,
-                COUNT(*) as total
+    // Get all attendance instances for this course
+    $sql = "SELECT a.id
             FROM {attendance} a
-            JOIN {attendance_sessions} ats ON ats.attendanceid = a.id
-            LEFT JOIN {attendance_log} al ON al.sessionid = ats.id AND al.studentid = ?
             WHERE a.course = ?";
     
-    $result = $DB->get_record_sql($sql, [$userid, $courseid]);
+    $attendances = $DB->get_records_sql($sql, [$courseid]);
     
-    if ($result && $result->total > 0) {
-        return round(($result->present / $result->total) * 100);
+    if (empty($attendances)) {
+        return null;
+    }
+    
+    $totalSessions = 0;
+    $presentCount = 0;
+    
+    foreach ($attendances as $attendance) {
+        // Get all sessions for this attendance instance
+        $sessions = $DB->get_records('attendance_sessions', ['attendanceid' => $attendance->id]);
+        
+        if (empty($sessions)) {
+            continue;
+        }
+        
+        foreach ($sessions as $session) {
+            // Check if session has been taken (sessdate in the past)
+            if ($session->sessdate > time()) {
+                continue; // Skip future sessions
+            }
+            
+            $totalSessions++;
+            
+            // Get the student's log for this session
+            $log = $DB->get_record('attendance_log', [
+                'sessionid' => $session->id,
+                'studentid' => $userid
+            ]);
+            
+            if ($log) {
+                // Get the status for this log entry
+                $status = $DB->get_record('attendance_statuses', ['id' => $log->statusid]);
+                
+                // Check if status is present (acronym P, L, or similar present statuses)
+                if ($status && in_array($status->acronym, ['P', 'L', 'E'])) {
+                    $presentCount++;
+                }
+            }
+        }
+    }
+    
+    if ($totalSessions > 0) {
+        return round(($presentCount / $totalSessions) * 100);
     }
     
     return null;

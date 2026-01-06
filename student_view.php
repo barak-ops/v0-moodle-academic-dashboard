@@ -44,7 +44,8 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="d-flex align-items-center">
             <?php echo fullname($user); ?>
-            <a href="#" class="ml-2" onclick="openEmailModal('<?php echo $user->email; ?>'); return false;" style="font-size: 0.6em; text-decoration: none;">
+            <!-- Pass userid instead of email address -->
+            <a href="#" class="ml-2" onclick="openUserEmail(<?php echo $userid; ?>, <?php echo $fromcourse ? $fromcourse : 0; ?>); return false;" style="font-size: 0.6em; text-decoration: none;">
                 <i class="fa fa-envelope"></i>
             </a>
         </h2>
@@ -194,8 +195,8 @@ document.getElementById('groupForm').addEventListener('submit', function(e) {
     document.getElementById('groupChanges').value = JSON.stringify(groupChanges);
 });
 
-function openEmailModal(email) {
-    const url = '<?php echo new moodle_url('/local/academic_dashboard/mail_compose.php'); ?>?to=' + encodeURIComponent(email) + '&courseid=<?php echo $fromcourse ? $fromcourse : 0; ?>';
+function openUserEmail(userid, courseid) {
+    const url = '<?php echo new moodle_url('/local/academic_dashboard/mail_compose.php'); ?>?userid=' + userid + '&courseid=' + courseid;
     window.open(url, 'EmailComposer', 'width=900,height=700,scrollbars=yes,resizable=yes');
 }
 </script>

@@ -243,7 +243,7 @@ echo $OUTPUT->header();
                 echo '<div class="flex-grow-1">';
                 echo '<a href="user.php?id=' . $student->id . '&fromcourse=' . $courseid . '">' . fullname($student) . '</a>';
                 echo '</div>';
-                echo '<a href="#" class="mr-3" onclick="openEmailModal(\'' . $student->email . '\'); return false;" title="' . $student->email . '">';
+                echo '<a href="#" class="mr-3" onclick="openUserEmail(' . $student->id . ', ' . $courseid . '); return false;" title="' . $student->email . '">';
                 echo '<i class="fa fa-envelope"></i>';
                 echo '</a>';
                 
@@ -318,8 +318,8 @@ document.getElementById('groupForm').addEventListener('submit', function(e) {
     document.getElementById('groupData').value = JSON.stringify(changes);
 });
 
-function openEmailModal(email) {
-    const url = '<?php echo new moodle_url('/local/academic_dashboard/mail_compose.php'); ?>?to=' + encodeURIComponent(email) + '&courseid=<?php echo $courseid; ?>';
+function openUserEmail(userid, courseid) {
+    const url = '<?php echo new moodle_url('/local/academic_dashboard/mail_compose.php'); ?>?userid=' + userid + '&courseid=' + courseid;
     window.open(url, 'EmailComposer', 'width=900,height=700,scrollbars=yes,resizable=yes');
 }
 

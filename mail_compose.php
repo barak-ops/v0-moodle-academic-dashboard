@@ -8,6 +8,7 @@ require_capability('local/academic_dashboard:view', context_system::instance());
 
 $courseid = optional_param('courseid', 0, PARAM_INT);
 $groupid = optional_param('groupid', 0, PARAM_INT);
+$userid = optional_param('userid', 0, PARAM_INT);
 $to = optional_param('to', '', PARAM_TEXT);
 $action = optional_param('action', '', PARAM_TEXT);
 
@@ -80,7 +81,15 @@ $context = null;
 $groups = [];
 $default_recipients = [];
 
-if ($courseid) {
+if ($userid > 0) {
+    $recipient = $DB->get_record('user', ['id' => $userid], 'id, email, firstname, lastname');
+    if ($recipient) {
+        $default_recipients[] = ['email' => $recipient->email, 'name' => fullname($recipient)];
+    }
+} elseif ($to) {
+    // Handle email address directly
+    $default_recipients[] = ['email' => $to, 'name' => $to];
+} elseif ($courseid) {
     $course = $DB->get_record('course', ['id' => $courseid]);
     $context = context_course::instance($courseid);
     $groups = groups_get_all_groups($courseid);
@@ -409,7 +418,7 @@ document.getElementById('emailForm').addEventListener('submit', function(e) {
     
     const formData = new FormData(this);
     
-    fetch('mail_compose.php?courseid=<?php echo $courseid; ?>&groupid=<?php echo $groupid; ?>', {
+    fetch('mail_compose.php?courseid=<?php echo $courseid; ?>&groupid=<?php echo $groupid; ?>&userid=<?php echo $userid; ?>', {
         method: 'POST',
         body: formData
     })
