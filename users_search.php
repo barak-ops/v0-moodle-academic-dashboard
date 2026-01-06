@@ -61,14 +61,18 @@ searchInput.addEventListener('input', function() {
         filtered.forEach(user => {
             html += `<tr>
                 <td>
-                    <a href="user.php?id=${user.id}" class="course-name-link">
-                        <strong>${user.firstname} ${user.lastname}</strong>
-                    </a>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="user.php?id=${user.id}" class="course-name-link">
+                            <strong>${user.firstname} ${user.lastname}</strong>
+                        </a>
+                    </div>
                 </td>
                 <td>
-                    <a href="#" onclick="window.open('mail_compose.php?to=${encodeURIComponent(user.email)}', 'email_composer', 'width=800,height=600'); return false;">
-                        <i class="fa fa-envelope"></i> ${user.email}
-                    </a>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="#" onclick="window.open('mail_compose.php?to=${encodeURIComponent(user.email)}', 'email_composer', 'width=800,height=600'); return false;">
+                            <i class="fa fa-envelope"></i> ${user.email}
+                        </a>
+                    </div>
                 </td>
             </tr>`;
         });
