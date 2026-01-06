@@ -64,7 +64,7 @@ echo $OUTPUT->header();
         <div class="row mb-4">
             <div class="col-md-2">
                 <div class="card" style="border-radius: 7px;">
-                    <div class="card-body text-center">
+                    <div class="icon-card-body text-center">
                         <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #6c757d; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
                             <i class="fa fa-file fa-2x" style="color: white;"></i>
                         </div>
@@ -75,7 +75,7 @@ echo $OUTPUT->header();
             </div>
             <div class="col-md-2">
                 <div class="card" style="border-radius: 7px;">
-                    <div class="card-body text-center">
+                    <div class="icon-card-body text-center">
                         <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #17a2b8; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
                             <i class="fa fa-question-circle fa-2x" style="color: white;"></i>
                         </div>
@@ -86,7 +86,7 @@ echo $OUTPUT->header();
             </div>
             <div class="col-md-2">
                 <div class="card" style="border-radius: 7px;">
-                    <div class="card-body text-center">
+                    <div class="icon-card-body text-center">
                         <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #28a745; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
                             <i class="fa fa-tasks fa-2x" style="color: white;"></i>
                         </div>
@@ -97,7 +97,7 @@ echo $OUTPUT->header();
             </div>
             <div class="col-md-2">
                 <div class="card" style="border-radius: 7px;">
-                    <div class="card-body text-center">
+                    <div class="icon-card-body text-center">
                         <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #dc3545; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
                             <i class="fa fa-exclamation-triangle fa-2x" style="color: white;"></i>
                         </div>
@@ -108,7 +108,7 @@ echo $OUTPUT->header();
             </div>
             <div class="col-md-2">
                 <div class="card" style="border-radius: 7px;">
-                    <div class="card-body text-center">
+                    <div class="icon-card-body text-center">
                         <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #007bff; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
                             <i class="fa fa-clock-o fa-2x" style="color: white;"></i>
                         </div>
@@ -119,7 +119,7 @@ echo $OUTPUT->header();
             </div>
             <div class="col-md-2">
                 <div class="card" style="border-radius: 7px;">
-                    <div class="card-body text-center">
+                    <div class="icon-card-body text-center">
                         <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #6c757d; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
                             <i class="fa fa-users fa-2x" style="color: white;"></i>
                         </div>
