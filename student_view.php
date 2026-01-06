@@ -163,7 +163,7 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
             <?php endforeach; ?>
             
             <div class="card-body" style="background: #f7f7f7; padding-top:15px; border-radius: 0;">
-                <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
+                <button type="submit" class="btn btn-primary" id="saveBtn">
                     <?php echo get_string('save', 'local_academic_dashboard'); ?>
                 </button>
             </div>
@@ -176,9 +176,16 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
 const groupChanges = [];
 
 const originalGroups = {};
-document.querySelectorAll('.group-selector').forEach(select => {
-    const courseid = select.dataset.courseid;
-    originalGroups[courseid] = select.value;
+document.addEventListener('DOMContentLoaded', function() {
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true;
+    saveBtn.style.opacity = '0.5';
+    saveBtn.style.cursor = 'not-allowed';
+    
+    document.querySelectorAll('.group-selector').forEach(select => {
+        const courseid = select.dataset.courseid;
+        originalGroups[courseid] = select.value;
+    });
 });
 
 document.querySelectorAll('.group-selector').forEach(select => {
@@ -196,7 +203,16 @@ document.querySelectorAll('.group-selector').forEach(select => {
             groupChanges.push({courseid: courseid, groupid: groupid});
         }
         
-        document.getElementById('saveBtn').disabled = groupChanges.length === 0;
+        const saveBtn = document.getElementById('saveBtn');
+        if (groupChanges.length === 0) {
+            saveBtn.disabled = true;
+            saveBtn.style.opacity = '0.5';
+            saveBtn.style.cursor = 'not-allowed';
+        } else {
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = '1';
+            saveBtn.style.cursor = 'pointer';
+        }
     });
 });
 

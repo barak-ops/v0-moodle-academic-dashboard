@@ -250,7 +250,7 @@ echo $OUTPUT->header();
                 if ($progress !== null) {
                     echo '<div class="mr-3 d-flex align-items-center">';
                     echo '<div class="progress mr-2" style="width: 100px; height: 20px;">';
-                    echo '<div class="progress-bar" role="progressbar" style="width: ' . $progress . '%"></div>';
+                    echo '<div class="progress-bar bg-info" role="progressbar" style="width: ' . $progress . '%"></div>';
                     echo '</div>';
                     echo '<small style="white-space: nowrap;">' . get_string('progress', 'local_academic_dashboard') . ': ' . round($progress) . '%</small>';
                     echo '</div>';
@@ -262,6 +262,13 @@ echo $OUTPUT->header();
                     echo '<div class="progress-bar bg-success" role="progressbar" style="width: ' . $attendance . '%"></div>';
                     echo '</div>';
                     echo '<small style="white-space: nowrap;">' . get_string('attendance', 'local_academic_dashboard') . ': ' . $attendance . '%</small>';
+                    echo '</div>';
+                } else {
+                    echo '<div class="d-flex align-items-center">';
+                    echo '<div class="progress mr-2" style="width: 100px; height: 20px;">';
+                    echo '<div class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>';
+                    echo '</div>';
+                    echo '<small style="white-space: nowrap;">' . get_string('attendance', 'local_academic_dashboard') . ': 0%</small>';
                     echo '</div>';
                 }
                 
@@ -282,6 +289,13 @@ echo $OUTPUT->header();
 <script>
 let draggedElement = null;
 const changes = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true;
+    saveBtn.style.opacity = '0.5';
+    saveBtn.style.cursor = 'not-allowed';
+});
 
 document.querySelectorAll('.student-card').forEach(card => {
     card.addEventListener('dragstart', function(e) {
@@ -314,8 +328,10 @@ document.querySelectorAll('.student-card').forEach(card => {
             
             changes.push({userid: userid, groupid: groupid});
             
-            // Enable save button
-            document.getElementById('saveBtn').disabled = false;
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = '1';
+            saveBtn.style.cursor = 'pointer';
         }
         return false;
     });

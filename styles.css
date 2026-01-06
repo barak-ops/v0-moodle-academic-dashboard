@@ -80,7 +80,6 @@ canvas {
   text-decoration: underline;
 }
 
-
 /* Added cards-container background and card-body padding styles */
 #cards-container {
   background: #f7f7f7;
@@ -88,13 +87,35 @@ canvas {
 }
 
 .icon-card-body {
-    flex: 1 1 auto;
-    min-height: 1px;
-    padding: 1.25rem;
+  flex: 1 1 auto;
+  min-height: 1px;
+  padding: 1.25rem;
 }
+
 .card-body {
   padding: 0 1.25rem !important;
 }
+
 .card-header {
-    border-top: solid #17a2b8;
+  border-top: solid #17a2b8;
+}
+
+/* Added disabled button styling - half transparent with no hover effect */
+.btn-primary:disabled,
+.btn-primary[disabled] {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+.card.card-block {
+  background: #f7f7f7;
+}
+
+div#region-main-box {
+  background: #f7f7f7;
+}
+
+div#page-content {
+  background: #f7f7f7;
 }
