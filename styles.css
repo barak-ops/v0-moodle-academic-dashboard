@@ -95,3 +95,6 @@ canvas {
 .card-body {
   padding: 0 1.25rem !important;
 }
+.card-header {
+    border-top: solid #17a2b8;
+}
