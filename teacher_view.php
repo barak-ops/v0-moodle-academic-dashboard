@@ -61,33 +61,34 @@ foreach ($courses as $course) {
             <?php echo $user->email; ?>
         </a>
     </p>
-    
-    <!-- Statistics -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fa fa-book fa-2x"></i>
-                    <h4><?php echo $totalcourses; ?></h4>
-                    <small><?php echo get_string('total_courses', 'local_academic_dashboard'); ?></small>
+    <div id="cards-container">
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fa fa-book fa-2x"></i>
+                        <h4><?php echo $totalcourses; ?></h4>
+                        <small><?php echo get_string('total_courses', 'local_academic_dashboard'); ?></small>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fa fa-tasks fa-2x"></i>
-                    <h4><?php echo $totalquizzes + $totalassignments; ?></h4>
-                    <small><?php echo get_string('quizzes', 'local_academic_dashboard') . ' + ' . get_string('assignments', 'local_academic_dashboard'); ?></small>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fa fa-tasks fa-2x"></i>
+                        <h4><?php echo $totalquizzes + $totalassignments; ?></h4>
+                        <small><?php echo get_string('quizzes', 'local_academic_dashboard') . ' + ' . get_string('assignments', 'local_academic_dashboard'); ?></small>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fa fa-exclamation-triangle fa-2x text-danger"></i>
-                    <h4><?php echo $totaloverdue; ?></h4>
-                    <small><?php echo get_string('overdue_tasks', 'local_academic_dashboard'); ?></small>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fa fa-exclamation-triangle fa-2x text-danger"></i>
+                        <h4><?php echo $totaloverdue; ?></h4>
+                        <small><?php echo get_string('overdue_tasks', 'local_academic_dashboard'); ?></small>
+                    </div>
                 </div>
             </div>
         </div>

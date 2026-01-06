@@ -59,12 +59,12 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
         </a>
     </p>
     
-    <!-- Statistics with Pie Charts -->
-    <div class="row mb-4">
+    <div id="cards-container">
+   ` <div class="row mb-4">
         <!-- Replaced progress bar with pie chart -->
         <div class="col-md-3">
             <div class="card">
-                <div class="card-body d-flex align-items-center">
+                <div class="icon-card-body d-flex align-items-center">
                     <!-- Smaller pie chart to match icon size (64x64) -->
                     <canvas id="progressChart" width="64" height="64" class="mr-3"></canvas>
                     <div>
@@ -77,7 +77,7 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
         <!-- Replaced progress bar with pie chart -->
         <div class="col-md-3">
             <div class="card">
-                <div class="card-body d-flex align-items-center">
+                <div class="icon-card-body d-flex align-items-center">
                     <!-- Smaller pie chart to match icon size (64x64) -->
                     <canvas id="attendanceChart" width="64" height="64" class="mr-3"></canvas>
                     <div>
@@ -89,7 +89,7 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
         </div>
         <div class="col-md-3">
             <div class="card">
-                <div class="card-body d-flex align-items-center">
+                <div class="icon-card-body d-flex align-items-center">
                     <i class="fa fa-book fa-3x text-primary mr-3"></i>
                     <div>
                         <h3 class="mb-0"><?php echo $totalcourses; ?></h3>
@@ -100,7 +100,7 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
         </div>
         <div class="col-md-3">
             <div class="card">
-                <div class="card-body d-flex align-items-center">
+                <div class="icon-card-body d-flex align-items-center">
                     <i class="fa fa-exclamation-triangle fa-3x text-danger mr-3"></i>
                     <div>
                         <h3 class="mb-0"><?php echo $totaloverdue; ?></h3>
@@ -110,7 +110,7 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
             </div>
         </div>
     </div>
-    
+  `</div  
     <!-- Courses -->
     <h4><?php echo get_string('courses'); ?></h4>
     <form method="post" id="groupForm">
