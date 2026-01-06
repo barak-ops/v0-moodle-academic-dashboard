@@ -599,10 +599,9 @@ function filterUsersByContext(query) {
     let availableUsers = [];
     
     <?php if ($courseid && $course): ?>
-    // Filter from course users
     availableUsers = courseUsers.filter(user => {
-        const nameMatch = user.name.toLowerCase().includes(query);
-        const emailMatch = user.email.toLowerCase().includes(query);
+        const nameMatch = user.name.toLowerCase().startsWith(query);
+        const emailMatch = user.email.toLowerCase().startsWith(query);
         const notAlreadyAdded = !toRecipients.has(user.email) && !ccRecipients.has(user.email);
         return (nameMatch || emailMatch) && notAlreadyAdded;
     });
