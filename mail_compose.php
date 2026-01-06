@@ -150,6 +150,7 @@ if ($courseid) {
     border: 1px solid #ddd;
     border-radius: 4px;
     font-family: inherit;
+    height: 40px;
 }
 
 .email-composer textarea {
