@@ -9,6 +9,7 @@ $string['users_tab'] = 'Users';
 $string['back'] = 'Back';
 $string['send_email'] = 'Send Email';
 $string['search_users'] = 'Search Users';
+$string['username'] = 'Username'; // Added username string for users table header
 $string['too_many_results'] = 'Too many results. Please refine your search.';
 $string['no_results'] = 'No results found';
 $string['students'] = 'Students';

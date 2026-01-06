@@ -11,7 +11,19 @@ global $DB, $OUTPUT;
         <input type="text" class="form-control" id="userSearch" placeholder="<?php echo get_string('search_users', 'local_academic_dashboard'); ?>">
     </div>
     
-    <div id="searchResults" class="mt-3"></div>
+    <!-- Added table structure with styled header matching courses table -->
+    <div id="searchResults" class="mt-3">
+        <table class="table table-hover">
+            <thead class="table-header-cyan">
+                <tr>
+                    <th><?php echo get_string('username', 'local_academic_dashboard'); ?></th>
+                    <th><?php echo get_string('email'); ?></th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody">
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
@@ -22,13 +34,13 @@ const allUsers = <?php
 ?>;
 
 const searchInput = document.getElementById('userSearch');
-const resultsDiv = document.getElementById('searchResults');
+const tableBody = document.getElementById('usersTableBody');
 
 searchInput.addEventListener('input', function() {
     const query = this.value.toLowerCase().trim();
     
     if (query.length === 0) {
-        resultsDiv.innerHTML = '';
+        tableBody.innerHTML = '';
         return;
     }
     
@@ -41,28 +53,26 @@ searchInput.addEventListener('input', function() {
     
     // Display results
     if (filtered.length > 20) {
-        resultsDiv.innerHTML = '<div class="alert alert-info"><?php echo get_string('too_many_results', 'local_academic_dashboard'); ?></div>';
+        tableBody.innerHTML = '<tr><td colspan="2"><div class="alert alert-info"><?php echo get_string('too_many_results', 'local_academic_dashboard'); ?></div></td></tr>';
     } else if (filtered.length === 0) {
-        resultsDiv.innerHTML = '<div class="alert alert-warning"><?php echo get_string('no_results', 'local_academic_dashboard'); ?></div>';
+        tableBody.innerHTML = '<tr><td colspan="2"><div class="alert alert-warning"><?php echo get_string('no_results', 'local_academic_dashboard'); ?></div></td></tr>';
     } else {
-        let html = '<div class="list-group">';
+        let html = '';
         filtered.forEach(user => {
-            html += `<a href="user.php?id=${user.id}" class="list-group-item list-group-item-action">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span>${user.firstname} ${user.lastname}</span>
-                    <a href="#" class="badge badge-primary" onclick="openEmailModal('${user.email}'); return false;">
+            html += `<tr>
+                <td>
+                    <a href="user.php?id=${user.id}" class="course-name-link">
+                        <strong>${user.firstname} ${user.lastname}</strong>
+                    </a>
+                </td>
+                <td>
+                    <a href="#" onclick="window.open('mail_compose.php?to=${encodeURIComponent(user.email)}', 'email_composer', 'width=800,height=600'); return false;">
                         <i class="fa fa-envelope"></i> ${user.email}
                     </a>
-                </div>
-            </a>`;
+                </td>
+            </tr>`;
         });
-        html += '</div>';
-        resultsDiv.innerHTML = html;
+        tableBody.innerHTML = html;
     }
 });
-
-function openEmailModal(email) {
-    // TODO: Implement email modal
-    alert('Send email to: ' + email);
-}
 </script>

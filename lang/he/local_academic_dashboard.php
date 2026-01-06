@@ -9,6 +9,7 @@ $string['users_tab'] = 'משתמשים';
 $string['back'] = 'חזרה';
 $string['send_email'] = 'שליחת מייל';
 $string['search_users'] = 'חיפוש משתמשים';
+$string['username'] = 'שם משתמש';
 $string['too_many_results'] = 'קיימות יותר מדי אפשרויות בחירה';
 $string['no_results'] = 'לא נמצאו תוצאות';
 $string['students'] = 'תלמידים';
