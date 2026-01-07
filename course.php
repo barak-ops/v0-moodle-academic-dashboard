@@ -295,7 +295,7 @@ echo $OUTPUT->header();
         <div class="card-header card-header-color" style="padding: 15px">
             <h4 class="mb-0 d-flex justify-content-between align-items-center">
                 <?php echo get_string('notes', 'local_academic_dashboard'); ?>
-                <button class="btn btn-sm btn-primary" onclick="openNoteModal()">
+                <button class="btn btn-primary" onclick="openNoteModal()">
                     <i class="fa fa-plus"></i> <?php echo get_string('add', 'local_academic_dashboard'); ?>
                 </button>
             </h4>
