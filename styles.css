@@ -108,9 +108,9 @@ canvas {
   pointer-events: none;
 }
 
-.card-header-color{
-  background:#e0f7ff;
+.card-header.card-header-color {
+    background-color: #e0f7ff!important;
 }
-.intent{
-  text-intent:10px;
+.card-header.intent {
+    text-indent: 20px;
 }
