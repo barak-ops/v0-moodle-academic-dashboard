@@ -55,9 +55,15 @@ echo $OUTPUT->header();
                 <i class="fa fa-envelope"></i>
             </a>
         </h2>
-        <a href="<?php echo $fromuser ? 'user.php?id=' . $fromuser : 'index.php'; ?>" style="font-size: 1.5em; text-decoration: none; color: #333;">
-            <i class="fa fa-arrow-left"></i>
-        </a>
+        <!-- Added home icon next to back arrow -->
+        <div>
+            <a href="<?php echo $fromuser ? 'user.php?id=' . $fromuser : 'index.php'; ?>" style="font-size: 1.5em; text-decoration: none; color: #333; margin-right: 10px;">
+                <i class="fa fa-arrow-left"></i>
+            </a>
+            <a href="index.php" style="font-size: 1.5em; text-decoration: none; color: #333;">
+                <i class="fa fa-home"></i>
+            </a>
+        </div>
     </div>
     
     <div id="cards-container">
