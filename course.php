@@ -155,7 +155,7 @@ echo $OUTPUT->header();
     </div>
     
     <div class="card mt-3" style="border-radius: 7px;">
-        <div class="card-header">
+        <div class="card-header card-header-color">
             <h4 class="mb-0"><?php echo get_string('students', 'local_academic_dashboard'); ?></h4>
         </div>
         <hr class="m-0">

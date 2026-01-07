@@ -108,14 +108,7 @@ canvas {
   pointer-events: none;
 }
 
-.card.card-block {
-  background: #f7f7f7;
-}
 
-div#region-main-box {
-  background: #f7f7f7;
-}
-
-div#page-content {
-  background: #f7f7f7;
+.card-header-color{
+  background:#e0f7ff;
 }
