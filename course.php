@@ -131,7 +131,7 @@ echo $OUTPUT->header();
         </div>
     </div>
     <div class="card">
-        <div class="card-header" style="padding: 15px">
+        <div class="card-header card-header-color" style="padding: 15px">
             <h4 class="mb-0"><?php echo get_string('teacher', 'local_academic_dashboard'); ?></h4>
         </div>
         <hr class="m-0">

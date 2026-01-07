@@ -83,7 +83,7 @@ canvas {
 /* Added cards-container background and card-body padding styles */
 #cards-container {
   background: #f7f7f7;
-  padding: 10px;
+  padding: 25px 25px 1px;
 }
 
 .icon-card-body {
