@@ -194,7 +194,7 @@ echo $OUTPUT->header();
                 }
                 
                 foreach ($groups as $group) {
-                    echo '<div class="card-header bg-light"><h5 class="mb-0">' . format_string($group->name) . '</h5></div>';
+                    echo '<div class="card-header intent bg-light"><h5 class="mb-0">' . format_string($group->name) . '</h5></div>';
                     echo '<hr class="m-0">';
                     echo '<div class="student-group" data-groupid="' . $group->id . '">';
                     if (isset($groupedstudents[$group->id])) {

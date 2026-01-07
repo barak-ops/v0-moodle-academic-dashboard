@@ -108,7 +108,9 @@ canvas {
   pointer-events: none;
 }
 
-
 .card-header-color{
   background:#e0f7ff;
+}
+.intent{
+  text-intent:10px;
 }
