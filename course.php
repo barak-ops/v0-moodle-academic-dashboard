@@ -130,7 +130,7 @@ echo $OUTPUT->header();
             </div>
         </div>
     </div>
-    <div class="card">
+    <div class="card mt-3">
         <div class="card-header card-header-color" style="padding: 15px">
             <h4 class="mb-0"><?php echo get_string('teacher', 'local_academic_dashboard'); ?></h4>
         </div>
@@ -154,7 +154,7 @@ echo $OUTPUT->header();
         <?php endforeach; ?>
     </div>
     
-    <div class="card mt-3" style="border-radius: 7px;">
+    <div class="card">
         <div class="card-header card-header-color">
             <h4 class="mb-0"><?php echo get_string('students', 'local_academic_dashboard'); ?></h4>
         </div>

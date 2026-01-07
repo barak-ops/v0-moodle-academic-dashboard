@@ -39,7 +39,7 @@
 }
 
 .course-details .card {
-  margin-bottom: 0.5rem;
+  /*margin-bottom: 0.5rem;*/
 }
 
 .student-card {
@@ -113,4 +113,8 @@ canvas {
 }
 .card-header.intent {
     text-indent: 20px;
+}
+.student-card {
+    border: 1px solid #dee2e6;
+    margin: 0 10px;
 }
