@@ -143,7 +143,7 @@ echo $OUTPUT->header();
             $teacherIndex++;
             $isLast = ($teacherIndex === $teacherCount);
         ?>
-        <div class="card-body d-flex justify-content-between align-items-center" style="border-radius: 0; <?php echo $isLast ? '' : 'border-bottom: 1px solid #dee2e6;'; ?>">
+        <div class="card-body teacher-card d-flex justify-content-between align-items-center" style="border-radius: 0; <?php echo $isLast ? '' : 'border-bottom: 1px solid #dee2e6;'; ?>">
             <a href="user.php?id=<?php echo $teacher->id; ?>&fromcourse=<?php echo $courseid; ?>">
                 <?php echo fullname($teacher); ?>
             </a>

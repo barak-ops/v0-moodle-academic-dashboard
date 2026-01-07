@@ -114,7 +114,12 @@ canvas {
 .card-header.intent {
     text-indent: 20px;
 }
-.student-card {
+.student-card, 
+.teacher-card {
     border: 1px solid #dee2e6;
     margin: 0 10px;
+}
+.card-body.teacher-card {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
 }
