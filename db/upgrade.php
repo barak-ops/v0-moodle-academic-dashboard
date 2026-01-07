@@ -18,8 +18,6 @@ function xmldb_local_academic_dashboard_upgrade($oldversion) {
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
         $table->add_key('courseid', XMLDB_KEY_FOREIGN, ['courseid'], 'course', ['id']);
         
-        $table->add_index('courseid_idx', XMLDB_INDEX_NOTUNIQUE, ['courseid']);
-        
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
