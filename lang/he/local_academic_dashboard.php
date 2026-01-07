@@ -52,5 +52,22 @@ $string['email_no_recipients'] = 'אנא הוסף לפחות נמען אחד';
 $string['email_sent_success'] = 'המייל נשלח בהצלחה';
 $string['email_sent_error'] = 'שגיאה בשליחת המייל. אנא נסה שוב.';
 $string['type_to_search'] = 'הקלד לחיפוש משתמשים...';
+$string['notes'] = 'הערות';
+$string['add'] = 'הוסף';
+$string['add_note'] = 'הוסף הערת קורס';
+$string['edit_note'] = 'ערוך הערת קורס';
+$string['note_title'] = 'כותרת';
+$string['note_content'] = 'תוכן';
+$string['enter_title'] = 'הזן כותרת הערה';
+$string['enter_content'] = 'הזן תוכן הערה';
+$string['cancel'] = 'ביטול';
+$string['loading'] = 'טוען';
+$string['no_notes'] = 'אין הערות זמינות';
+$string['date_created'] = 'תאריך יצירה';
+$string['actions'] = 'פעולות';
+$string['edit'] = 'ערוך';
+$string['delete'] = 'מחק';
+$string['confirm_delete_note'] = 'האם אתה בטוח שברצונך למחוק הערה זו?';
+$string['fill_all_fields'] = 'אנא מלא את כל השדות';
 
 // ... rest of code here ...

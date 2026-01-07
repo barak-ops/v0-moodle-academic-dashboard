@@ -289,19 +289,210 @@ echo $OUTPUT->header();
             </div>
         </form>
     </div>
+    
+    <!-- Added Notes Section -->
+    <div class="card mt-3">
+        <div class="card-header card-header-color" style="padding: 15px">
+            <h4 class="mb-0 d-flex justify-content-between align-items-center">
+                <?php echo get_string('notes', 'local_academic_dashboard'); ?>
+                <button class="btn btn-sm btn-primary" onclick="openNoteModal()">
+                    <i class="fa fa-plus"></i> <?php echo get_string('add', 'local_academic_dashboard'); ?>
+                </button>
+            </h4>
+        </div>
+        <hr class="m-0">
+        <div id="notesContainer" class="card-body">
+            <p class="text-muted"><?php echo get_string('loading', 'local_academic_dashboard'); ?>...</p>
+        </div>
+    </div>
 </div>
 
+<!-- Note Modal Popup -->
+<div id="noteModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
+    <div style="background-color: #fefefe; margin: 5% auto; padding: 0; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div style="padding: 15px 20px; background-color: #f8f9fa; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items-center; border-radius: 5px 5px 0 0;">
+            <h3 id="noteModalTitle" style="margin: 0; flex-grow: 1;"><?php echo get_string('add_note', 'local_academic_dashboard'); ?></h3>
+            <button onclick="closeNoteModal()" style="background: none; border: none; font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+        </div>
+        <div style="padding: 20px;">
+            <input type="hidden" id="noteId" value="">
+            <div class="form-group">
+                <label for="noteTitle"><?php echo get_string('note_title', 'local_academic_dashboard'); ?></label>
+                <input type="text" class="form-control" id="noteTitle" placeholder="<?php echo get_string('enter_title', 'local_academic_dashboard'); ?>">
+            </div>
+            <div class="form-group">
+                <label for="noteContent"><?php echo get_string('note_content', 'local_academic_dashboard'); ?></label>
+                <textarea class="form-control" id="noteContent" rows="8" placeholder="<?php echo get_string('enter_content', 'local_academic_dashboard'); ?>"></textarea>
+            </div>
+            <button class="btn btn-primary" id="saveNoteBtn" onclick="saveNote()" disabled><?php echo get_string('save', 'local_academic_dashboard'); ?></button>
+            <button class="btn btn-secondary" onclick="closeNoteModal()"><?php echo get_string('cancel', 'local_academic_dashboard'); ?></button>
+        </div>
+    </div>
+</div>
 
 <script>
 let draggedElement = null;
 const changes = [];
+const courseid = <?php echo $courseid; ?>;
 
 document.addEventListener('DOMContentLoaded', function() {
     const saveBtn = document.getElementById('saveBtn');
     saveBtn.disabled = true;
     saveBtn.style.opacity = '0.5';
     saveBtn.style.cursor = 'not-allowed';
+    
+    loadNotes();
+    
+    document.getElementById('noteTitle').addEventListener('input', checkNoteFields);
+    document.getElementById('noteContent').addEventListener('input', checkNoteFields);
 });
+
+function checkNoteFields() {
+    const title = document.getElementById('noteTitle').value.trim();
+    const content = document.getElementById('noteContent').value.trim();
+    const saveBtn = document.getElementById('saveNoteBtn');
+    
+    if (title && content) {
+        saveBtn.disabled = false;
+        saveBtn.style.opacity = '1';
+        saveBtn.style.cursor = 'pointer';
+    } else {
+        saveBtn.disabled = true;
+        saveBtn.style.opacity = '0.5';
+        saveBtn.style.cursor = 'not-allowed';
+    }
+}
+
+function openNoteModal(noteid = null) {
+    document.getElementById('noteModal').style.display = 'block';
+    document.getElementById('noteId').value = '';
+    document.getElementById('noteTitle').value = '';
+    document.getElementById('noteContent').value = '';
+    document.getElementById('saveNoteBtn').disabled = true;
+    document.getElementById('saveNoteBtn').style.opacity = '0.5';
+    
+    if (noteid) {
+        document.getElementById('noteModalTitle').textContent = '<?php echo get_string('edit_note', 'local_academic_dashboard'); ?>';
+        // Load note data
+        fetch('manage_notes.php?action=get&courseid=' + courseid + '&noteid=' + noteid)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('noteId').value = data.note.id;
+                    document.getElementById('noteTitle').value = data.note.title;
+                    document.getElementById('noteContent').value = data.note.content;
+                    checkNoteFields();
+                }
+            });
+    } else {
+        document.getElementById('noteModalTitle').textContent = '<?php echo get_string('add_note', 'local_academic_dashboard'); ?>';
+    }
+}
+
+function closeNoteModal() {
+    document.getElementById('noteModal').style.display = 'none';
+}
+
+function saveNote() {
+    const noteid = document.getElementById('noteId').value;
+    const title = document.getElementById('noteTitle').value.trim();
+    const content = document.getElementById('noteContent').value.trim();
+    
+    if (!title || !content) {
+        alert('<?php echo get_string('fill_all_fields', 'local_academic_dashboard'); ?>');
+        return;
+    }
+    
+    const action = noteid ? 'update' : 'add';
+    const params = new URLSearchParams({
+        action: action,
+        courseid: courseid,
+        title: title,
+        content: content
+    });
+    
+    if (noteid) {
+        params.append('noteid', noteid);
+    }
+    
+    fetch('manage_notes.php?' + params.toString(), {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeNoteModal();
+            loadNotes();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+}
+
+function loadNotes() {
+    fetch('manage_notes.php?action=list&courseid=' + courseid)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayNotes(data.notes);
+            }
+        });
+}
+
+function displayNotes(notes) {
+    const container = document.getElementById('notesContainer');
+    
+    if (notes.length === 0) {
+        container.innerHTML = '<p class="text-muted"><?php echo get_string('no_notes', 'local_academic_dashboard'); ?></p>';
+        return;
+    }
+    
+    let html = '<table class="table table-striped"><thead><tr>';
+    html += '<th><?php echo get_string('note_title', 'local_academic_dashboard'); ?></th>';
+    html += '<th><?php echo get_string('note_content', 'local_academic_dashboard'); ?></th>';
+    html += '<th><?php echo get_string('date_created', 'local_academic_dashboard'); ?></th>';
+    html += '<th><?php echo get_string('actions', 'local_academic_dashboard'); ?></th>';
+    html += '</tr></thead><tbody>';
+    
+    notes.forEach(note => {
+        html += '<tr>';
+        html += '<td>' + escapeHtml(note.title) + '</td>';
+        html += '<td>' + escapeHtml(note.content.substring(0, 100)) + (note.content.length > 100 ? '...' : '') + '</td>';
+        html += '<td>' + note.timecreated + '</td>';
+        html += '<td>';
+        html += '<a href="#" onclick="openNoteModal(' + note.id + '); return false;" title="<?php echo get_string('edit', 'local_academic_dashboard'); ?>"><i class="fa fa-edit"></i></a> ';
+        html += '<a href="#" onclick="deleteNote(' + note.id + '); return false;" title="<?php echo get_string('delete', 'local_academic_dashboard'); ?>" style="color: #dc3545;"><i class="fa fa-trash"></i></a>';
+        html += '</td>';
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function deleteNote(noteid) {
+    if (!confirm('<?php echo get_string('confirm_delete_note', 'local_academic_dashboard'); ?>')) {
+        return;
+    }
+    
+    fetch('manage_notes.php?action=delete&courseid=' + courseid + '&noteid=' + noteid, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadNotes();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 document.querySelectorAll('.student-card').forEach(card => {
     card.addEventListener('dragstart', function(e) {
