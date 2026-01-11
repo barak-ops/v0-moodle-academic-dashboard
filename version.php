@@ -8,8 +8,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$plugin = new stdClass();
 $plugin->component = 'local_academic_dashboard';
-$plugin->version = 2025010700; // Incremented version for notes feature
-$plugin->requires = 2022041900; // Moodle 4.0
+$plugin->version = 2025010700;
+$plugin->requires = 2022041900;
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = 'v2.1';
