@@ -42,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
 }
 
 $stats = local_academic_dashboard_get_course_stats($courseid);
+$hasZoom = local_academic_dashboard_course_has_zoom($courseid);
 
 echo $OUTPUT->header();
 
@@ -209,7 +210,7 @@ echo $OUTPUT->header();
                         foreach ($groupedstudents[$group->id] as $student) {
                             $groupStudentIndex++;
                             $isLastInGroup = ($groupStudentIndex === $groupStudentCount);
-                            display_student_row($student, $courseid, $isLastInGroup);
+                            display_student_row($student, $courseid, $isLastInGroup, $hasZoom);
                         }
                     }
                     echo '</div>';
@@ -224,7 +225,7 @@ echo $OUTPUT->header();
                     foreach ($nogroupstudents as $student) {
                         $noGroupIndex++;
                         $isLastInGroup = ($noGroupIndex === $noGroupCount);
-                        display_student_row($student, $courseid, $isLastInGroup);
+                        display_student_row($student, $courseid, $isLastInGroup, $hasZoom);
                     }
                     echo '</div>';
                 }
@@ -235,14 +236,14 @@ echo $OUTPUT->header();
                 foreach ($students as $student) {
                     $allStudentIndex++;
                     $isLastInGroup = ($allStudentIndex === $allStudentCount);
-                    display_student_row($student, $courseid, $isLastInGroup);
+                    display_student_row($student, $courseid, $isLastInGroup, $hasZoom);
                 }
                 echo '</div>';
             }
             
-            function display_student_row($student, $courseid, $isLast = false) {
+            function display_student_row($student, $courseid, $isLast = false, $showAttendance = true) {
                 $progress = local_academic_dashboard_get_student_progress($student->id, $courseid);
-                $attendance = local_academic_dashboard_get_student_attendance($student->id, $courseid);
+                $attendance = $showAttendance ? local_academic_dashboard_get_student_attendance($student->id, $courseid) : null;
                 
                 echo '<div class="card-body d-flex align-items-center student-card" data-userid="' . $student->id . '" draggable="true" style="border-radius: 0; ' . ($isLast ? '' : 'border-bottom: 1px solid #dee2e6;') . '">';
                 echo '<i class="fa fa-bars mr-3" style="cursor: move;"></i>';
@@ -262,19 +263,12 @@ echo $OUTPUT->header();
                     echo '</div>';
                 }
                 
-                if ($attendance !== null) {
+                if ($showAttendance && $attendance !== null) {
                     echo '<div class="d-flex align-items-center">';
                     echo '<div class="progress mr-2" style="width: 100px; height: 20px;">';
                     echo '<div class="progress-bar bg-success" role="progressbar" style="width: ' . $attendance . '%"></div>';
                     echo '</div>';
                     echo '<small style="white-space: nowrap;">' . get_string('attendance', 'local_academic_dashboard') . ': ' . $attendance . '%</small>';
-                    echo '</div>';
-                } else {
-                    echo '<div class="d-flex align-items-center">';
-                    echo '<div class="progress mr-2" style="width: 100px; height: 20px;">';
-                    echo '<div class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>';
-                    echo '</div>';
-                    echo '<small style="white-space: nowrap;">' . get_string('attendance', 'local_academic_dashboard') . ': 0%</small>';
                     echo '</div>';
                 }
                 

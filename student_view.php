@@ -12,6 +12,11 @@ $totaloverdue = 0;
 $coursesWithProgress = 0;
 $coursesWithAttendance = 0;
 
+$coursesWithZoom = [];
+foreach ($courses as $course) {
+    $coursesWithZoom[$course->id] = local_academic_dashboard_course_has_zoom($course->id);
+}
+
 foreach ($courses as $course) {
     $progress = local_academic_dashboard_get_student_progress($userid, $course->id);
     if ($progress !== null) {
@@ -19,10 +24,12 @@ foreach ($courses as $course) {
         $coursesWithProgress++;
     }
     
-    $attendance = local_academic_dashboard_get_student_attendance($userid, $course->id);
-    if ($attendance !== null) {
-        $totalattendance += $attendance;
-        $coursesWithAttendance++;
+    if ($coursesWithZoom[$course->id]) {
+        $attendance = local_academic_dashboard_get_student_attendance($userid, $course->id);
+        if ($attendance !== null) {
+            $totalattendance += $attendance;
+            $coursesWithAttendance++;
+        }
     }
     
     // Count overdue assignments
@@ -37,6 +44,8 @@ foreach ($courses as $course) {
 
 $avgprogress = $coursesWithProgress > 0 ? round($totalprogress / $coursesWithProgress) : 0;
 $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesWithAttendance) : 0;
+
+$anyCoursesWithZoom = count(array_filter($coursesWithZoom)) > 0;
 
 ?>
 
@@ -73,6 +82,8 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
                     </div>
                 </div>
             </div>
+            <?php // Only show attendance stat card if any course has Zoom ?>
+            <?php if ($anyCoursesWithZoom): ?>
             <div class="col-md-3">
                 <div class="card" style="border-radius: 7px;">
                     <div class="icon-card-body text-center">
@@ -84,6 +95,7 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
             <div class="col-md-3">
                 <div class="card" style="border-radius: 7px;">
                     <div class="icon-card-body text-center">
@@ -125,7 +137,8 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
                 $courseIndex++;
                 $isLast = ($courseIndex === $courseCount);
                 $progress = local_academic_dashboard_get_student_progress($userid, $course->id);
-                $attendance = local_academic_dashboard_get_student_attendance($userid, $course->id);
+                $hasZoom = $coursesWithZoom[$course->id];
+                $attendance = $hasZoom ? local_academic_dashboard_get_student_attendance($userid, $course->id) : null;
                 $groups = groups_get_all_groups($course->id);
                 $usergroups = groups_get_user_groups($course->id, $userid);
                 $currentgroupid = !empty($usergroups[0]) ? $usergroups[0][0] : 0;
@@ -146,7 +159,8 @@ $avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesW
                 </div>
                 <?php endif; ?>
                 
-                <?php if ($attendance !== null): ?>
+                <?php // Only show attendance bar if course has Zoom ?>
+                <?php if ($hasZoom && $attendance !== null): ?>
                 <div class="mr-3 d-flex align-items-center">
                     <div class="progress mr-2" style="width: 100px; height: 20px;">
                         <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $attendance; ?>%"></div>

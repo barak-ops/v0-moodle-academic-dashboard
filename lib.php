@@ -5,6 +5,27 @@ require_once($CFG->dirroot . '/lib/completionlib.php');
 require_once($CFG->libdir . '/accesslib.php');
 
 /**
+ * Check if course has Zoom meeting activity
+ */
+function local_academic_dashboard_course_has_zoom($courseid) {
+    global $DB;
+    
+    // Check if zoom module exists
+    if (!$DB->record_exists('modules', ['name' => 'zoom'])) {
+        return false;
+    }
+    
+    // Check if course has any zoom activities
+    $sql = "SELECT COUNT(*) as count
+            FROM {zoom} z
+            WHERE z.course = ?";
+    
+    $result = $DB->get_field_sql($sql, [$courseid]);
+    
+    return $result > 0;
+}
+
+/**
  * Get course statistics
  */
 function local_academic_dashboard_get_course_stats($courseid) {
@@ -81,66 +102,59 @@ function local_academic_dashboard_get_student_progress($userid, $courseid) {
 }
 
 /**
- * Get student attendance percentage
+ * Get student attendance percentage based on Zoom meeting participation
+ * Updated to use mdl_zoom_meeting_participants table for attendance data
  */
 function local_academic_dashboard_get_student_attendance($userid, $courseid) {
     global $DB;
     
-    // Check if attendance module exists
-    if (!$DB->record_exists('modules', ['name' => 'attendance'])) {
+    // Check if zoom module exists
+    if (!$DB->record_exists('modules', ['name' => 'zoom'])) {
         return null;
     }
     
-    // Get all attendance instances for this course
-    $sql = "SELECT a.id
-            FROM {attendance} a
-            WHERE a.course = ?";
-    
-    $attendances = $DB->get_records_sql($sql, [$courseid]);
-    
-    if (empty($attendances)) {
+    // Get user email for matching in zoom participants
+    $user = $DB->get_record('user', ['id' => $userid], 'email');
+    if (!$user) {
         return null;
     }
     
-    $totalSessions = 0;
-    $presentCount = 0;
+    // Get all zoom meetings for this course that have already occurred
+    $sql = "SELECT z.id, z.meeting_id
+            FROM {zoom} z
+            WHERE z.course = ? AND z.start_time < ?";
     
-    foreach ($attendances as $attendance) {
-        // Get all sessions for this attendance instance
-        $sessions = $DB->get_records('attendance_sessions', ['attendanceid' => $attendance->id]);
+    $zoommeetings = $DB->get_records_sql($sql, [$courseid, time()]);
+    
+    if (empty($zoommeetings)) {
+        return null;
+    }
+    
+    $totalMeetings = count($zoommeetings);
+    $attendedCount = 0;
+    
+    foreach ($zoommeetings as $zoom) {
+        // Check if user participated in this meeting
+        // Match by user_email or name containing the user's email
+        $sql = "SELECT COUNT(*) as cnt
+                FROM {zoom_meeting_participants} zmp
+                WHERE zmp.zoomid = ?
+                AND (zmp.userid = ? OR zmp.user_email = ? OR zmp.name LIKE ?)";
         
-        if (empty($sessions)) {
-            continue;
-        }
+        $participated = $DB->get_field_sql($sql, [
+            $zoom->id,
+            $userid,
+            $user->email,
+            '%' . $user->email . '%'
+        ]);
         
-        foreach ($sessions as $session) {
-            // Check if session has been taken (sessdate in the past)
-            if ($session->sessdate > time()) {
-                continue; // Skip future sessions
-            }
-            
-            $totalSessions++;
-            
-            // Get the student's log for this session
-            $log = $DB->get_record('attendance_log', [
-                'sessionid' => $session->id,
-                'studentid' => $userid
-            ]);
-            
-            if ($log) {
-                // Get the status for this log entry
-                $status = $DB->get_record('attendance_statuses', ['id' => $log->statusid]);
-                
-                // Check if status is present (acronym P, L, or similar present statuses)
-                if ($status && in_array($status->acronym, ['P', 'L', 'E'])) {
-                    $presentCount++;
-                }
-            }
+        if ($participated > 0) {
+            $attendedCount++;
         }
     }
     
-    if ($totalSessions > 0) {
-        return round(($presentCount / $totalSessions) * 100);
+    if ($totalMeetings > 0) {
+        return round(($attendedCount / $totalMeetings) * 100);
     }
     
     return null;
