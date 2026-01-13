@@ -6,10 +6,19 @@ require_once($CFG->dirroot . '/group/lib.php');
 global $DB;
 
 require_login();
-require_capability('local/academic_dashboard:view', context_system::instance());
 
 $userid = required_param('id', PARAM_INT);
 $fromcourse = optional_param('fromcourse', 0, PARAM_INT);
+
+$hassystemcap = has_capability('local/academic_dashboard:view', context_system::instance());
+$hascoursecap = false;
+if ($fromcourse) {
+    $coursecontext = context_course::instance($fromcourse);
+    $hascoursecap = has_capability('moodle/course:update', $coursecontext);
+}
+if (!$hassystemcap && !$hascoursecap) {
+    require_capability('local/academic_dashboard:view', context_system::instance());
+}
 
 $user = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
 $isteacher = local_academic_dashboard_is_teacher($userid);
