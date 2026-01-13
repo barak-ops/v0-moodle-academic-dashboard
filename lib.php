@@ -114,38 +114,40 @@ function local_academic_dashboard_get_student_attendance($userid, $courseid) {
     }
     
     // Get user email for matching in zoom participants
-    $user = $DB->get_record('user', ['id' => $userid], 'email');
+    $user = $DB->get_record('user', ['id' => $userid], 'email, firstname, lastname');
     if (!$user) {
         return null;
     }
     
-    // Get all zoom meetings for this course that have already occurred
-    $sql = "SELECT z.id, z.meeting_id
+    // Get all zoom meeting details for this course that have already occurred
+    $sql = "SELECT zmd.id as detailsid, z.id as zoomid
             FROM {zoom} z
+            JOIN {zoom_meeting_details} zmd ON zmd.zoomid = z.id
             WHERE z.course = ? AND z.start_time < ?";
     
-    $zoommeetings = $DB->get_records_sql($sql, [$courseid, time()]);
+    $meetingdetails = $DB->get_records_sql($sql, [$courseid, time()]);
     
-    if (empty($zoommeetings)) {
+    if (empty($meetingdetails)) {
         return null;
     }
     
-    $totalMeetings = count($zoommeetings);
+    $totalMeetings = count($meetingdetails);
     $attendedCount = 0;
     
-    foreach ($zoommeetings as $zoom) {
-        // Check if user participated in this meeting
-        // Match by user_email or name containing the user's email
+    $fullname = trim($user->firstname . ' ' . $user->lastname);
+    
+    foreach ($meetingdetails as $detail) {
         $sql = "SELECT COUNT(*) as cnt
                 FROM {zoom_meeting_participants} zmp
-                WHERE zmp.zoomid = ?
-                AND (zmp.userid = ? OR zmp.user_email = ? OR zmp.name LIKE ?)";
+                WHERE zmp.detailsid = ?
+                AND (zmp.userid = ? OR zmp.user_email = ? OR zmp.name LIKE ? OR zmp.name LIKE ?)";
         
         $participated = $DB->get_field_sql($sql, [
-            $zoom->id,
+            $detail->detailsid,
             $userid,
             $user->email,
-            '%' . $user->email . '%'
+            '%' . $user->email . '%',
+            '%' . $fullname . '%'
         ]);
         
         if ($participated > 0) {
