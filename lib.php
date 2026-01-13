@@ -103,7 +103,16 @@ function local_academic_dashboard_get_student_progress($userid, $courseid) {
 
 /**
  * Get student attendance percentage based on Zoom meeting participation
- * Updated to use mdl_zoom_meeting_participants table for attendance data
+ * 
+ * Logic:
+ * 1. Find all Zoom meeting activities in the course
+ * 2. For each Zoom meeting, find all sessions (zoom_meeting_details) that have occurred
+ * 3. For each session, check if the student participated (zoom_meeting_participants)
+ * 4. Calculate percentage: (sessions attended / total sessions) * 100
+ *
+ * @param int $userid The user ID
+ * @param int $courseid The course ID
+ * @return int|null Attendance percentage or null if no Zoom sessions
  */
 function local_academic_dashboard_get_student_attendance($userid, $courseid) {
     global $DB;
@@ -113,53 +122,181 @@ function local_academic_dashboard_get_student_attendance($userid, $courseid) {
         return null;
     }
     
-    // Get user email for matching in zoom participants
-    $user = $DB->get_record('user', ['id' => $userid], 'email, firstname, lastname');
+    // Get user details for matching in zoom participants
+    $user = $DB->get_record('user', ['id' => $userid], 'id, email, firstname, lastname');
     if (!$user) {
         return null;
     }
     
-    // Get all zoom meeting details for this course that have already occurred
-    $sql = "SELECT zmd.id as detailsid, z.id as zoomid
-            FROM {zoom} z
-            JOIN {zoom_meeting_details} zmd ON zmd.zoomid = z.id
-            WHERE z.course = ? AND z.start_time < ?";
+    // Step 1: Get all Zoom meetings in this course
+    $zoomMeetings = $DB->get_records('zoom', ['course' => $courseid], '', 'id, name, meeting_id');
     
-    $meetingdetails = $DB->get_records_sql($sql, [$courseid, time()]);
-    
-    if (empty($meetingdetails)) {
+    if (empty($zoomMeetings)) {
         return null;
     }
     
-    $totalMeetings = count($meetingdetails);
-    $attendedCount = 0;
+    // Step 2: Get all sessions (meeting details) for all Zoom meetings in this course
+    // Only count sessions that have already occurred (end_time is in the past)
+    $zoomIds = array_keys($zoomMeetings);
+    list($insql, $params) = $DB->get_in_or_equal($zoomIds, SQL_PARAMS_NAMED);
     
-    $fullname = trim($user->firstname . ' ' . $user->lastname);
+    $sql = "SELECT zmd.id as detailsid, zmd.zoomid, zmd.start_time, zmd.end_time, zmd.meeting_id
+            FROM {zoom_meeting_details} zmd
+            WHERE zmd.zoomid {$insql}
+            AND zmd.end_time IS NOT NULL 
+            AND zmd.end_time < :now
+            ORDER BY zmd.start_time ASC";
     
-    foreach ($meetingdetails as $detail) {
-        $sql = "SELECT COUNT(*) as cnt
+    $params['now'] = time();
+    $sessions = $DB->get_records_sql($sql, $params);
+    
+    if (empty($sessions)) {
+        return null;
+    }
+    
+    $totalSessions = count($sessions);
+    $attendedSessions = 0;
+    
+    // Prepare user matching patterns
+    $userEmail = strtolower(trim($user->email));
+    $fullName = strtolower(trim($user->firstname . ' ' . $user->lastname));
+    $reverseName = strtolower(trim($user->lastname . ' ' . $user->firstname));
+    
+    // Step 3: For each session, check if the student participated
+    foreach ($sessions as $session) {
+        // Query zoom_meeting_participants for this session
+        // Match by: userid (if set), user_email, or name (firstname lastname or lastname firstname)
+        $sql = "SELECT COUNT(*) as participated
                 FROM {zoom_meeting_participants} zmp
-                WHERE zmp.detailsid = ?
-                AND (zmp.userid = ? OR zmp.user_email = ? OR zmp.name LIKE ? OR zmp.name LIKE ?)";
+                WHERE zmp.detailsid = :detailsid
+                AND (
+                    (zmp.userid IS NOT NULL AND zmp.userid = :userid)
+                    OR LOWER(zmp.user_email) = :email
+                    OR LOWER(zmp.name) LIKE :fullname
+                    OR LOWER(zmp.name) LIKE :reversename
+                    OR LOWER(zmp.name) LIKE :emailpattern
+                )";
         
-        $participated = $DB->get_field_sql($sql, [
-            $detail->detailsid,
-            $userid,
-            $user->email,
-            '%' . $user->email . '%',
-            '%' . $fullname . '%'
-        ]);
+        $participationParams = [
+            'detailsid' => $session->detailsid,
+            'userid' => $userid,
+            'email' => $userEmail,
+            'fullname' => '%' . $fullName . '%',
+            'reversename' => '%' . $reverseName . '%',
+            'emailpattern' => '%' . $userEmail . '%'
+        ];
+        
+        $participated = $DB->get_field_sql($sql, $participationParams);
         
         if ($participated > 0) {
-            $attendedCount++;
+            $attendedSessions++;
         }
     }
     
-    if ($totalMeetings > 0) {
-        return round(($attendedCount / $totalMeetings) * 100);
+    // Step 4: Calculate percentage
+    if ($totalSessions > 0) {
+        return round(($attendedSessions / $totalSessions) * 100);
     }
     
     return null;
+}
+
+/**
+ * Get overall student attendance across all courses with Zoom
+ * Used for the attendance pie chart on the student page
+ *
+ * @param int $userid The user ID
+ * @return array ['percentage' => int, 'attended' => int, 'total' => int]
+ */
+function local_academic_dashboard_get_overall_attendance($userid) {
+    global $DB;
+    
+    // Check if zoom module exists
+    if (!$DB->record_exists('modules', ['name' => 'zoom'])) {
+        return ['percentage' => 0, 'attended' => 0, 'total' => 0];
+    }
+    
+    // Get user details
+    $user = $DB->get_record('user', ['id' => $userid], 'id, email, firstname, lastname');
+    if (!$user) {
+        return ['percentage' => 0, 'attended' => 0, 'total' => 0];
+    }
+    
+    // Get all courses the user is enrolled in
+    $courses = enrol_get_users_courses($userid, true);
+    
+    if (empty($courses)) {
+        return ['percentage' => 0, 'attended' => 0, 'total' => 0];
+    }
+    
+    $totalSessions = 0;
+    $attendedSessions = 0;
+    
+    // Prepare user matching patterns
+    $userEmail = strtolower(trim($user->email));
+    $fullName = strtolower(trim($user->firstname . ' ' . $user->lastname));
+    $reverseName = strtolower(trim($user->lastname . ' ' . $user->firstname));
+    
+    foreach ($courses as $course) {
+        // Get all Zoom meetings in this course
+        $zoomMeetings = $DB->get_records('zoom', ['course' => $course->id], '', 'id');
+        
+        if (empty($zoomMeetings)) {
+            continue;
+        }
+        
+        // Get all completed sessions for these Zoom meetings
+        $zoomIds = array_keys($zoomMeetings);
+        list($insql, $params) = $DB->get_in_or_equal($zoomIds, SQL_PARAMS_NAMED);
+        
+        $sql = "SELECT zmd.id as detailsid
+                FROM {zoom_meeting_details} zmd
+                WHERE zmd.zoomid {$insql}
+                AND zmd.end_time IS NOT NULL 
+                AND zmd.end_time < :now";
+        
+        $params['now'] = time();
+        $sessions = $DB->get_records_sql($sql, $params);
+        
+        foreach ($sessions as $session) {
+            $totalSessions++;
+            
+            // Check if user participated in this session
+            $sql = "SELECT COUNT(*) as participated
+                    FROM {zoom_meeting_participants} zmp
+                    WHERE zmp.detailsid = :detailsid
+                    AND (
+                        (zmp.userid IS NOT NULL AND zmp.userid = :userid)
+                        OR LOWER(zmp.user_email) = :email
+                        OR LOWER(zmp.name) LIKE :fullname
+                        OR LOWER(zmp.name) LIKE :reversename
+                        OR LOWER(zmp.name) LIKE :emailpattern
+                    )";
+            
+            $participationParams = [
+                'detailsid' => $session->detailsid,
+                'userid' => $userid,
+                'email' => $userEmail,
+                'fullname' => '%' . $fullName . '%',
+                'reversename' => '%' . $reverseName . '%',
+                'emailpattern' => '%' . $userEmail . '%'
+            ];
+            
+            $participated = $DB->get_field_sql($sql, $participationParams);
+            
+            if ($participated > 0) {
+                $attendedSessions++;
+            }
+        }
+    }
+    
+    $percentage = $totalSessions > 0 ? round(($attendedSessions / $totalSessions) * 100) : 0;
+    
+    return [
+        'percentage' => $percentage,
+        'attended' => $attendedSessions,
+        'total' => $totalSessions
+    ];
 }
 
 /**

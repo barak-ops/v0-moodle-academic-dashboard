@@ -7,10 +7,8 @@ $courses = enrol_get_users_courses($userid, true);
 // Calculate overall statistics
 $totalcourses = count($courses);
 $totalprogress = 0;
-$totalattendance = 0;
 $totaloverdue = 0;
 $coursesWithProgress = 0;
-$coursesWithAttendance = 0;
 
 $coursesWithZoom = [];
 foreach ($courses as $course) {
@@ -24,14 +22,6 @@ foreach ($courses as $course) {
         $coursesWithProgress++;
     }
     
-    if ($coursesWithZoom[$course->id]) {
-        $attendance = local_academic_dashboard_get_student_attendance($userid, $course->id);
-        if ($attendance !== null) {
-            $totalattendance += $attendance;
-            $coursesWithAttendance++;
-        }
-    }
-    
     // Count overdue assignments
     $now = time();
     $sql = "SELECT COUNT(*) as count
@@ -43,9 +33,10 @@ foreach ($courses as $course) {
 }
 
 $avgprogress = $coursesWithProgress > 0 ? round($totalprogress / $coursesWithProgress) : 0;
-$avgattendance = $coursesWithAttendance > 0 ? round($totalattendance / $coursesWithAttendance) : 0;
 
-$anyCoursesWithZoom = count(array_filter($coursesWithZoom)) > 0;
+$overallAttendance = local_academic_dashboard_get_overall_attendance($userid);
+$avgattendance = $overallAttendance['percentage'];
+$anyCoursesWithZoom = $overallAttendance['total'] > 0;
 
 ?>
 
@@ -82,7 +73,7 @@ $anyCoursesWithZoom = count(array_filter($coursesWithZoom)) > 0;
                     </div>
                 </div>
             </div>
-            <?php // Only show attendance stat card if any course has Zoom ?>
+            <?php // Only show attendance stat card if any course has Zoom sessions ?>
             <?php if ($anyCoursesWithZoom): ?>
             <div class="col-md-3">
                 <div class="card" style="border-radius: 7px;">
@@ -90,8 +81,12 @@ $anyCoursesWithZoom = count(array_filter($coursesWithZoom)) > 0;
                         <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #0f6cbf; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
                             <i class="fa fa-calendar-check-o fa-2x" style="color: white;"></i>
                         </div>
+                        <!-- Show sessions attended / total sessions under percentage -->
                         <h4 class="mb-0"><?php echo $avgattendance; ?>%</h4>
-                        <small class="text-muted"><?php echo get_string('attendance', 'local_academic_dashboard'); ?></small>
+                        <small class="text-muted">
+                            <?php echo get_string('attendance', 'local_academic_dashboard'); ?>
+                            (<?php echo $overallAttendance['attended']; ?>/<?php echo $overallAttendance['total']; ?>)
+                        </small>
                     </div>
                 </div>
             </div>
