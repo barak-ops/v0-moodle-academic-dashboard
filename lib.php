@@ -106,8 +106,8 @@ function local_academic_dashboard_get_student_progress($userid, $courseid) {
  * 
  * Logic:
  * 1. Find all Zoom meeting activities in the course
- * 2. For each Zoom meeting, find all sessions (zoom_meeting_details) that have occurred
- * 3. For each session, check if the student participated (zoom_meeting_participants)
+ * 2. For each Zoom meeting, find all sessions (zoom_meeting_details) by UUID
+ * 3. For each session UUID, check if the student participated (zoom_meeting_participants)
  * 4. Calculate percentage: (sessions attended / total sessions) * 100
  *
  * @param int $userid The user ID
@@ -135,14 +135,15 @@ function local_academic_dashboard_get_student_attendance($userid, $courseid) {
         return null;
     }
     
-    // Step 2: Get all sessions (meeting details) for all Zoom meetings in this course
-    // Only count sessions that have already occurred (end_time is in the past)
+    // Step 2: Get all unique session UUIDs for all Zoom meetings in this course
     $zoomIds = array_keys($zoomMeetings);
     list($insql, $params) = $DB->get_in_or_equal($zoomIds, SQL_PARAMS_NAMED);
     
-    $sql = "SELECT zmd.id as detailsid, zmd.zoomid, zmd.start_time, zmd.end_time, zmd.meeting_id
+    $sql = "SELECT DISTINCT zmd.id as detailsid, zmd.zoomid, zmd.uuid, zmd.start_time, zmd.end_time
             FROM {zoom_meeting_details} zmd
             WHERE zmd.zoomid {$insql}
+            AND zmd.uuid IS NOT NULL
+            AND zmd.uuid != ''
             AND zmd.end_time IS NOT NULL 
             AND zmd.end_time < :now
             ORDER BY zmd.start_time ASC";
@@ -154,7 +155,14 @@ function local_academic_dashboard_get_student_attendance($userid, $courseid) {
         return null;
     }
     
-    $totalSessions = count($sessions);
+    $uniqueSessions = [];
+    foreach ($sessions as $session) {
+        if (!empty($session->uuid) && !isset($uniqueSessions[$session->uuid])) {
+            $uniqueSessions[$session->uuid] = $session;
+        }
+    }
+    
+    $totalSessions = count($uniqueSessions);
     $attendedSessions = 0;
     
     // Prepare user matching patterns
@@ -162,13 +170,12 @@ function local_academic_dashboard_get_student_attendance($userid, $courseid) {
     $fullName = strtolower(trim($user->firstname . ' ' . $user->lastname));
     $reverseName = strtolower(trim($user->lastname . ' ' . $user->firstname));
     
-    // Step 3: For each session, check if the student participated
-    foreach ($sessions as $session) {
-        // Query zoom_meeting_participants for this session
-        // Match by: userid (if set), user_email, or name (firstname lastname or lastname firstname)
+    // Step 3: For each unique session UUID, check if the student participated
+    foreach ($uniqueSessions as $uuid => $session) {
         $sql = "SELECT COUNT(*) as participated
                 FROM {zoom_meeting_participants} zmp
-                WHERE zmp.detailsid = :detailsid
+                JOIN {zoom_meeting_details} zmd ON zmd.id = zmp.detailsid
+                WHERE zmd.uuid = :uuid
                 AND (
                     (zmp.userid IS NOT NULL AND zmp.userid = :userid)
                     OR LOWER(zmp.user_email) = :email
@@ -178,7 +185,7 @@ function local_academic_dashboard_get_student_attendance($userid, $courseid) {
                 )";
         
         $participationParams = [
-            'detailsid' => $session->detailsid,
+            'uuid' => $uuid,
             'userid' => $userid,
             'email' => $userEmail,
             'fullname' => '%' . $fullName . '%',
@@ -237,6 +244,8 @@ function local_academic_dashboard_get_overall_attendance($userid) {
     $fullName = strtolower(trim($user->firstname . ' ' . $user->lastname));
     $reverseName = strtolower(trim($user->lastname . ' ' . $user->firstname));
     
+    $allUniqueUuids = [];
+    
     foreach ($courses as $course) {
         // Get all Zoom meetings in this course
         $zoomMeetings = $DB->get_records('zoom', ['course' => $course->id], '', 'id');
@@ -249,9 +258,11 @@ function local_academic_dashboard_get_overall_attendance($userid) {
         $zoomIds = array_keys($zoomMeetings);
         list($insql, $params) = $DB->get_in_or_equal($zoomIds, SQL_PARAMS_NAMED);
         
-        $sql = "SELECT zmd.id as detailsid
+        $sql = "SELECT DISTINCT zmd.id as detailsid, zmd.uuid
                 FROM {zoom_meeting_details} zmd
                 WHERE zmd.zoomid {$insql}
+                AND zmd.uuid IS NOT NULL
+                AND zmd.uuid != ''
                 AND zmd.end_time IS NOT NULL 
                 AND zmd.end_time < :now";
         
@@ -259,34 +270,41 @@ function local_academic_dashboard_get_overall_attendance($userid) {
         $sessions = $DB->get_records_sql($sql, $params);
         
         foreach ($sessions as $session) {
-            $totalSessions++;
-            
-            // Check if user participated in this session
-            $sql = "SELECT COUNT(*) as participated
-                    FROM {zoom_meeting_participants} zmp
-                    WHERE zmp.detailsid = :detailsid
-                    AND (
-                        (zmp.userid IS NOT NULL AND zmp.userid = :userid)
-                        OR LOWER(zmp.user_email) = :email
-                        OR LOWER(zmp.name) LIKE :fullname
-                        OR LOWER(zmp.name) LIKE :reversename
-                        OR LOWER(zmp.name) LIKE :emailpattern
-                    )";
-            
-            $participationParams = [
-                'detailsid' => $session->detailsid,
-                'userid' => $userid,
-                'email' => $userEmail,
-                'fullname' => '%' . $fullName . '%',
-                'reversename' => '%' . $reverseName . '%',
-                'emailpattern' => '%' . $userEmail . '%'
-            ];
-            
-            $participated = $DB->get_field_sql($sql, $participationParams);
-            
-            if ($participated > 0) {
-                $attendedSessions++;
+            if (!empty($session->uuid) && !isset($allUniqueUuids[$session->uuid])) {
+                $allUniqueUuids[$session->uuid] = $session->detailsid;
             }
+        }
+    }
+    
+    $totalSessions = count($allUniqueUuids);
+    
+    foreach ($allUniqueUuids as $uuid => $detailsid) {
+        // Check if user participated in this session by UUID
+        $sql = "SELECT COUNT(*) as participated
+                FROM {zoom_meeting_participants} zmp
+                JOIN {zoom_meeting_details} zmd ON zmd.id = zmp.detailsid
+                WHERE zmd.uuid = :uuid
+                AND (
+                    (zmp.userid IS NOT NULL AND zmp.userid = :userid)
+                    OR LOWER(zmp.user_email) = :email
+                    OR LOWER(zmp.name) LIKE :fullname
+                    OR LOWER(zmp.name) LIKE :reversename
+                    OR LOWER(zmp.name) LIKE :emailpattern
+                )";
+        
+        $participationParams = [
+            'uuid' => $uuid,
+            'userid' => $userid,
+            'email' => $userEmail,
+            'fullname' => '%' . $fullName . '%',
+            'reversename' => '%' . $reverseName . '%',
+            'emailpattern' => '%' . $userEmail . '%'
+        ];
+        
+        $participated = $DB->get_field_sql($sql, $participationParams);
+        
+        if ($participated > 0) {
+            $attendedSessions++;
         }
     }
     
