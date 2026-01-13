@@ -4,13 +4,17 @@ require_once($CFG->dirroot . '/group/lib.php');
 require_once($CFG->dirroot . '/local/academic_dashboard/lib.php');
 
 require_login();
-require_capability('local/academic_dashboard:view', context_system::instance());
-
 $courseid = required_param('id', PARAM_INT);
-$fromuser = optional_param('fromuser', 0, PARAM_INT);
-
 $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $context = context_course::instance($courseid);
+
+// Allow access if user has system-level view capability OR course-level update capability
+if (!has_capability('local/academic_dashboard:view', context_system::instance()) && 
+    !has_capability('moodle/course:update', $context)) {
+    require_capability('local/academic_dashboard:view', context_system::instance());
+}
+
+$fromuser = optional_param('fromuser', 0, PARAM_INT);
 
 $PAGE->set_url(new moodle_url('/local/academic_dashboard/course.php', ['id' => $courseid]));
 $PAGE->set_context(context_system::instance());
