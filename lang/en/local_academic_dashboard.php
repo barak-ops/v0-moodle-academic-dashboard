@@ -1,4 +1,27 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * English strings for local_academic_dashboard
+ *
+ * @package    local_academic_dashboard
+ * @copyright  2025 Your Name
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'Academic Dashboard';
@@ -9,7 +32,7 @@ $string['users_tab'] = 'Users';
 $string['back'] = 'Back';
 $string['send_email'] = 'Send Email';
 $string['search_users'] = 'Search Users';
-$string['username'] = 'Username'; // Added username string for users table header
+$string['username'] = 'Username';
 $string['too_many_results'] = 'Too many results. Please refine your search.';
 $string['no_results'] = 'No results found';
 $string['students'] = 'Students';
@@ -51,7 +74,7 @@ $string['select_user'] = 'Select a user...';
 $string['email_no_recipients'] = 'Please add at least one recipient';
 $string['email_sent_success'] = 'Email sent successfully';
 $string['email_sent_error'] = 'Error sending email. Please try again.';
-$string['type_to_search'] = 'Type to search users...'; // Added autocomplete placeholder text
+$string['type_to_search'] = 'Type to search users...';
 $string['notes'] = 'Notes';
 $string['add'] = 'Add';
 $string['add_note'] = 'Add Course Note';
@@ -69,4 +92,3 @@ $string['edit'] = 'Edit';
 $string['delete'] = 'Delete';
 $string['confirm_delete_note'] = 'Are you sure you want to delete this note?';
 $string['fill_all_fields'] = 'Please fill in all fields';
-?>
